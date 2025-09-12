@@ -47,7 +47,7 @@ public class Order extends BaseEntity {
     private Coupon coupon;
 
     // FK a OrderStatus
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "status_id",
             nullable = true,

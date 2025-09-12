@@ -1,0 +1,9 @@
+ALTER TABLE orders DROP FOREIGN KEY FK_ORDER_STATUS;
+
+ALTER TABLE orders DROP COLUMN status_id;
+
+ALTER TABLE orders
+    ADD status_id BIGINT NULL;
+
+ALTER TABLE orders
+    ADD CONSTRAINT FK_ORDER_STATUS FOREIGN KEY (status_id) REFERENCES order_status (status_id);
