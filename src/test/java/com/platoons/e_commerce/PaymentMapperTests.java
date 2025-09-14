@@ -13,7 +13,9 @@ import com.platoons.e_commerce.entity.Payment;
 import com.platoons.e_commerce.entity.PaymentMethod;
 import com.platoons.e_commerce.entity.PaymentStatus;
 import com.platoons.e_commerce.mapper.PaymentMapper;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 public class PaymentMapperTests {
     @Test
     void testmapCreatePaymentRequestDtoToPayment() {

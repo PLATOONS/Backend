@@ -14,7 +14,9 @@ import com.platoons.e_commerce.entity.ProductImage;
 import com.platoons.e_commerce.entity.Category;
 import com.platoons.e_commerce.entity.ExtraInfo;
 import com.platoons.e_commerce.mapper.ProductMapper;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 public class ProductMapperTests {
     @Test
     void testmapCreateProductRequestDtoToProduct() {

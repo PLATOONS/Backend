@@ -26,7 +26,9 @@ import com.platoons.e_commerce.exceptions.EntityNotFoundException;
 import com.platoons.e_commerce.mapper.OrderMapper;
 import com.platoons.e_commerce.repository.OrderRepository;
 import com.platoons.e_commerce.service.impl.OrderServiceImpl;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 public class OrderServiceImplTests {
     private OrderRepository orderRepository;
     private OrderServiceImpl orderService;

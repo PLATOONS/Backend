@@ -8,8 +8,11 @@ import com.platoons.e_commerce.entity.Customer;
 import com.platoons.e_commerce.entity.Coupon;
 import com.platoons.e_commerce.mapper.OrderMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 public class OrderMapperTest {
 
     @Test

@@ -8,12 +8,14 @@ import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.platoons.e_commerce.utils.ImageUtils;
 
 @ExtendWith(MockitoExtension.class)
-class ImageUtilsTest {
+@ActiveProfiles("test")
+public class ImageUtilsTests {
 
     private final ImageUtils imageUtils = new ImageUtils();
 
