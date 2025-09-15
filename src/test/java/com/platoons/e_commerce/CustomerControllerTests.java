@@ -55,9 +55,16 @@ class CustomerControllerTests {
         when(customerService.createCustomer(any(CreateUserRequestDto.class)))
                 .thenReturn("CUS-123");
 
+        CreateUserRequestDto dto = new CreateUserRequestDto();
+        dto.setUsername("joemama");
+        dto.setFirstName("Joe");
+        dto.setLastName("Mama");
+        dto.setPassword("StrongP@ssw0rd");
+        dto.setEmail("user@example.com");
+
         mockMvc.perform(post("/api/v1/customer")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/v1/customer/CUS-123"))
                 .andExpect(jsonPath("$.message").value("Successfully created customer"));
@@ -78,9 +85,17 @@ class CustomerControllerTests {
         when(customerService.updateCustomer(any(UpdateCustomerRequestDto.class), eq("CUS-777")))
                 .thenReturn("CUS-777");
 
+        UpdateCustomerRequestDto dto = new UpdateCustomerRequestDto();
+        dto.setUsername("joemama");
+        dto.setFirstName("Joe");
+        dto.setLastName("Mama");
+        dto.setPassword("StrongP@ssw0rd");
+        dto.setEmail("user@example.com");
+        dto.setPhoneNumber("+502-98765432");
+
         mockMvc.perform(put("/api/v1/customer/{customerId}", "CUS-777")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/v1/customer/CUS-777"))
                 .andExpect(jsonPath("$.message").value("Successfully updated customer"));
