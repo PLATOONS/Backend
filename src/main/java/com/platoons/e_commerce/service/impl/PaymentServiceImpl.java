@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.platoons.e_commerce.dto.CreatePaymentRequestDto;
 import com.platoons.e_commerce.dto.PaymentDto;
-import com.platoons.e_commerce.dto.PaymentMethodDto;
 import com.platoons.e_commerce.dto.UpdatePaymentDto;
 import com.platoons.e_commerce.entity.Payment;
 import com.platoons.e_commerce.entity.PaymentMethod;
@@ -20,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PaymenteServiceImpl implements IPaymentService {
+public class PaymentServiceImpl implements IPaymentService {
 
     private final PaymentRepository paymentRepository;
 
