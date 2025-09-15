@@ -25,10 +25,4 @@ jobs:
       run: mvn -B package --file pom.xml
 
     - name: Run the tests
-      run: mvn -B verify org.jacoco:jacoco-maven-plugin:prepare-agent org.jacoco:jacoco-maven-plugin:report org.jacoco:jacoco-maven-plugin:check
-
-    - name: Upload Jacoco Report
-      uses: 'actions/upload-artifact@v4'
-      with:
-        name: jacoco-report
-        path: ${{ github.workspace }}/target/site/jacoco/index.html
+      run: mvn clean verify
