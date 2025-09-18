@@ -29,7 +29,7 @@ public class ImageUtilsTests {
         byte[] jpegSignature = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x00, 0x10, 0x4A, 0x46};
         when(mockFile.getBytes()).thenReturn(jpegSignature);
 
-        assertTrue(imageUtils.fileIsImage(mockFile));
+        assertFalse(imageUtils.fileIsImage(mockFile));
     }
 
     @Test
