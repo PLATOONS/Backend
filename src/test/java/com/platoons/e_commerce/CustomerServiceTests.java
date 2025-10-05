@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import com.platoons.e_commerce.repository.AuthorityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.platoons.e_commerce.dto.CreateUserRequestDto;
@@ -39,11 +42,17 @@ public class CustomerServiceTests {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private AuthorityRepository authorityRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     private CustomerServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new CustomerServiceImpl(customerRepository);
+        service = new CustomerServiceImpl(customerRepository, passwordEncoder, authorityRepository);
     }
 
     @Test
