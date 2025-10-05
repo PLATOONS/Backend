@@ -24,8 +24,8 @@ public class CustomerUserDetailsServiceImpl implements ICustomerUserDetailsServi
     // It's actually username or email
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Customer> customerByUsername = customerRepository.findByUsername(username);
-        Optional<Customer> customerByEmail = customerRepository.findByEmail(username);
+        Optional<Customer> customerByUsername = customerRepository.findByUsernameAndDeletedAtIsNull(username);
+        Optional<Customer> customerByEmail = customerRepository.findByEmailAndDeletedAtIsNull(username);
 
         Customer customer = null;
 
