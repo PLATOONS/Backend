@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.platoons.e_commerce.entity.Authority;
 import com.platoons.e_commerce.repository.AuthorityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,9 +59,15 @@ public class CustomerServiceTests {
     @Test
     void createCustomer_mapsAndSaves_andReturnsId() {
         CreateUserRequestDto dto = mock(CreateUserRequestDto.class);
+        dto.setPassword("password");
         Customer mapped = new Customer();
         Customer saved = new Customer();
         saved.setCustomerId("CUS-001");
+
+        String passwordHash = "encoded";
+
+        when(passwordEncoder.encode(same(dto.getPassword()))).thenReturn(passwordHash);
+        when(authorityRepository.save(any(Authority.class))).thenReturn(new Authority());
 
         try (MockedStatic<CustomerMapper> mocked = mockStatic(CustomerMapper.class)) {
             mocked.when(() -> CustomerMapper.mapCreateUserRequestDtoToCustomer(eq(dto), any(Customer.class)))
@@ -123,22 +130,33 @@ public class CustomerServiceTests {
     }
 
     @Test
-    void updateCustomer_mapsAndReturnsId_withoutSaving() {
-        UpdateCustomerRequestDto dto = mock(UpdateCustomerRequestDto.class);
-        Customer c = new Customer();
-        c.setCustomerId("CUS-777");
+    void updateCustomer_mapsAndReturnsId_andSaves() {
+        UpdateCustomerRequestDto dto = new UpdateCustomerRequestDto();
+        dto.setPassword("password");
+
+        Customer mapped = new Customer();
+        Customer saved = new Customer();
+        saved.setCustomerId("CUS-777");
+
+        Customer existing = new Customer();
+        existing.setCustomerId("CUS-777");
+
+        String passwordHash = "encoded";
 
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull("CUS-777"))
-                .thenReturn(Optional.of(c));
+                .thenReturn(Optional.of(existing));
+        when(passwordEncoder.encode("password")).thenReturn(passwordHash);
+        when(customerRepository.save(any(Customer.class))).thenReturn(saved);
 
         try (MockedStatic<CustomerMapper> mocked = mockStatic(CustomerMapper.class)) {
-            mocked.when(() -> CustomerMapper.mapUpdateCustomerRequestDtoToCustomer(eq(dto), same(c)))
-                  .then(inv -> null);
+            mocked.when(() -> CustomerMapper.mapUpdateCustomerRequestDtoToCustomer(dto, existing))
+                    .thenReturn(mapped);
 
             String id = service.updateCustomer(dto, "CUS-777");
 
             assertEquals("CUS-777", id);
-            verify(customerRepository, never()).save(any(Customer.class));
+            verify(customerRepository).save(any(Customer.class));
         }
     }
+
 }

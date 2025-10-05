@@ -71,6 +71,9 @@ public class CustomerServiceImpl implements ICustomerService {
 
         CustomerMapper.mapUpdateCustomerRequestDtoToCustomer(customerDto, customer);
 
+        customer.setPasswordHash(passwordEncoder.encode(customerDto.getPassword()));
+        customerRepository.save(customer);
+
         return customer.getCustomerId();
     }
 }
