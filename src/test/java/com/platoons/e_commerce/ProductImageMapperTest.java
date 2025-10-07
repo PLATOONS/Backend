@@ -26,6 +26,7 @@ public class ProductImageMapperTest {
 
     @Test
     void testConstructorProductImage() {
+        @SuppressWarnings("unused")
         ProductImageMapper PIM = new ProductImageMapper();
     }
 }
