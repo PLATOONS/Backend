@@ -19,9 +19,18 @@ public class JWTValidatorFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String jwt = request.getHeader("Authentication");
+        String authHeader = request.getHeader("Authorization");
 
-        jwtService.validateToken(jwt);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String jwt = authHeader.substring(7);
+            try {
+                jwtService.validateToken(jwt);
+            } catch (Exception ex) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid or expired token");
+                return;
+            }
+        }
 
         filterChain.doFilter(request, response);
     }
@@ -31,6 +40,11 @@ public class JWTValidatorFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
 
         return path
-                .equals("/api/v1/auth/**");
+            .startsWith("/api/v1/auth")
+            || path.startsWith("/v3/api-docs")
+            || path.startsWith("/swagger-ui")
+            || path.startsWith("/swagger-resources")
+            || path.startsWith("/webjars")
+            || path.startsWith("/api/v1/public");
     }
 }

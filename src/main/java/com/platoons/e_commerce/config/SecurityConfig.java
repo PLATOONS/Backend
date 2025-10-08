@@ -30,8 +30,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(req ->
-                    req.anyRequest().permitAll())
+            .authorizeHttpRequests(req -> req
+                .requestMatchers("/api/v1/hello").authenticated()
+                .anyRequest().permitAll())
             .addFilterBefore(new JWTValidatorFilter(jwtService), BasicAuthenticationFilter.class)
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(Customizer.withDefaults());
