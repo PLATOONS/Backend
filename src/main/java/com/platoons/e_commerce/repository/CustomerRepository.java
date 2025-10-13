@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends CrudRepository<Customer, String> {
     Optional<Customer> findByCustomerIdAndDeletedAtIsNull(String productId);
+    Optional<Customer> findByUsernameAndDeletedAtIsNull(String username);
+    Optional<Customer> findByEmailAndDeletedAtIsNull(String email);
 }

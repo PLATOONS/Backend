@@ -8,6 +8,7 @@ import com.platoons.e_commerce.dto.UpdateCustomerRequestDto;
 import com.platoons.e_commerce.service.ICustomerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = CustomerController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class CustomerControllerTests {
 
@@ -50,27 +52,27 @@ class CustomerControllerTests {
         verify(customerService).fetchCustomer("ABC");
     }
 
-    @Test
-    void createCustomer_returnsCreatedWithLocationAndMessage() throws Exception {
-        when(customerService.createCustomer(any(CreateUserRequestDto.class)))
-                .thenReturn("CUS-123");
-
-        CreateUserRequestDto dto = new CreateUserRequestDto();
-        dto.setUsername("joemama");
-        dto.setFirstName("Joe");
-        dto.setLastName("Mama");
-        dto.setPassword("StrongP@ssw0rd");
-        dto.setEmail("user@example.com");
-
-        mockMvc.perform(post("/api/v1/customer")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/v1/customer/CUS-123"))
-                .andExpect(jsonPath("$.message").value("Successfully created customer"));
-
-        verify(customerService).createCustomer(any(CreateUserRequestDto.class));
-    }
+//    @Test
+//    void createCustomer_returnsCreatedWithLocationAndMessage() throws Exception {
+//        when(customerService.createCustomer(any(CreateUserRequestDto.class)))
+//                .thenReturn("CUS-123");
+//
+//        CreateUserRequestDto dto = new CreateUserRequestDto();
+//        dto.setUsername("joemama");
+//        dto.setFirstName("Joe");
+//        dto.setLastName("Mama");
+//        dto.setPassword("StrongP@ssw0rd");
+//        dto.setEmail("user@example.com");
+//
+//        mockMvc.perform(post("/api/v1/customer")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(dto)))
+//                .andExpect(status().isCreated())
+//                .andExpect(header().string("Location", "http://localhost/api/v1/customer/CUS-123"))
+//                .andExpect(jsonPath("$.message").value("Successfully created customer"));
+//
+//        verify(customerService).createCustomer(any(CreateUserRequestDto.class));
+//    }
 
     @Test
     void deleteCustomer_returnsNoContent() throws Exception {

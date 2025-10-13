@@ -15,6 +15,7 @@ services:
       - .env
     environment:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD?Variable not set}
+      - SECRET=${JWT_SECRET?Variable not set}
       - DATABASE_USER=${DATABASE_USER:-user}
       - DATABASE_NAME=${DATABASE_NAME:-e-commerce}
       - DATABASE_HOST=db

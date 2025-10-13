@@ -19,7 +19,7 @@ public class Customer extends BaseEntity {
     @UuidGenerator
     private String customerId;
 
-    @OneToMany(mappedBy = "customer")
+    @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
     private Set<Authority> authorities;
 
     @NotNull
