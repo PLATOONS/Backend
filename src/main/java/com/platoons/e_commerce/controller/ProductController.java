@@ -50,9 +50,12 @@ public class ProductController {
     @PageableAsQueryParam
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<ProductRepository.ProductSummaryProjection>> fetchProducts(
-            @Parameter(hidden = true) Pageable pageable) {
+            @Parameter(hidden = true) Pageable pageable,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String min,
+            @RequestParam(required = false) String max) {
         log.info("Fetching products page={}, size={}, sort={}", pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        return ResponseEntity.ok(productService.fetchProducts(pageable));
+        return ResponseEntity.ok(productService.fetchProducts(pageable, category, min, max));
     }
 
     @Operation(summary = "Get product by ID", description = "Retrieves product details by its unique identifier")

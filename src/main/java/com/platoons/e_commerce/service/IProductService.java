@@ -9,10 +9,7 @@ import com.platoons.e_commerce.dto.FetchProductResponseDto;
 import com.platoons.e_commerce.repository.ProductRepository;
 
 public interface IProductService {
-    // NUEVO: listado paginado
-    Page<ProductRepository.ProductSummaryProjection> fetchProducts(Pageable pageable);
-
-    // Ya existente: por id
+    Page<ProductRepository.ProductSummaryProjection> fetchProducts(Pageable pageable, String category, String min, String max);
     FetchProductResponseDto fetchProduct(String productId);
 
     String createProduct(MultipartFile[] images, CreateProductRequestDto productDto);

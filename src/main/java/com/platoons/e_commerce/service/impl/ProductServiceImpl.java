@@ -40,8 +40,25 @@ public class ProductServiceImpl implements IProductService {
     private final ExtraInfoRepository extraInfoRepository;
 
     @Override
-    public Page<ProductRepository.ProductSummaryProjection> fetchProducts(Pageable pageable) {
-        return productRepository.findAllSummaries(pageable);
+    public Page<ProductRepository.ProductSummaryProjection> fetchProducts(Pageable pageable, String category, String min, String max) {
+        if (min == null){
+            min = "0";
+        }
+
+        if (max == null){
+            max = "999999";
+        }
+
+        double minPrice = Double.parseDouble(min);
+        double maxPrice = Double.parseDouble(max);
+
+        if (minPrice > maxPrice){
+            throw new BadRequestException("Min price is greater than max price");
+        }
+
+        System.out.println(category);
+
+        return productRepository.findAllSummaries(pageable, category, minPrice, maxPrice);
     }
 
     @Override
