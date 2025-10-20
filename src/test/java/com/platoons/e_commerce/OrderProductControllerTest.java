@@ -8,10 +8,6 @@ import com.platoons.e_commerce.exceptions.EntityNotFoundException;
 import com.platoons.e_commerce.service.IOrderProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,78 +17,85 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class OrderProductControllerTest {
+public class OrderProductControllerTest {
 
-    @Mock
     private IOrderProductService orderProductService;
-
-    @InjectMocks
     private OrderProductController controller;
-
     private Authentication mockAuthentication;
 
     @BeforeEach
     void setUp() {
+        orderProductService = mock(IOrderProductService.class);
         mockAuthentication = mock(Authentication.class);
+
+        controller = new OrderProductController(orderProductService);
     }
 
-    // 200 OK
     @Test
     void addToCart_ok() {
+        // Arrange
         var payload = new AddToCartRequestDto("PROD-1", 2, "red");
+
         when(mockAuthentication.getName()).thenReturn("1");
+        when(mockAuthentication.isAuthenticated()).thenReturn(true);
 
         doNothing().when(orderProductService).addToCart(any(AddToCartRequestDto.class), eq("1"));
 
+        // Act
         ResponseEntity<GenericResponseDto> response = controller.addToCart(payload, mockAuthentication);
 
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        // 👇 CAMBIO AQUÍ: Usamos .getMessage() porque es una clase con un getter
         assertEquals("Product added to cart", response.getBody().getMessage());
-
         verify(orderProductService).addToCart(any(AddToCartRequestDto.class), eq("1"));
     }
 
-    // 404 Not Found
     @Test
     void addToCart_productNotFound_throwsException() {
+        // Arrange
         var payload = new AddToCartRequestDto("PROD-NO-EXISTE", 1, null);
         when(mockAuthentication.getName()).thenReturn("1");
+        when(mockAuthentication.isAuthenticated()).thenReturn(true);
 
         doThrow(new EntityNotFoundException("Product", "sku", "PROD-NO-EXISTE"))
                 .when(orderProductService).addToCart(any(AddToCartRequestDto.class), eq("1"));
 
+        // Act & Assert
         assertThrows(EntityNotFoundException.class, () -> {
             controller.addToCart(payload, mockAuthentication);
         });
     }
 
-    // 400 Bad Request
     @Test
     void addToCart_badRequest_throwsException() {
+        // Arrange
         var payload = new AddToCartRequestDto("PROD-1", 9999, "blue");
         when(mockAuthentication.getName()).thenReturn("1");
+        when(mockAuthentication.isAuthenticated()).thenReturn(true);
 
         doThrow(new BadRequestException("Quantity is greater than available stock"))
                 .when(orderProductService).addToCart(any(AddToCartRequestDto.class), eq("1"));
 
+        // Act & Assert
         assertThrows(BadRequestException.class, () -> {
             controller.addToCart(payload, mockAuthentication);
         });
     }
 
-    // 204 No Content
     @Test
     void removeFromCart_always204() {
-        when(mockAuthentication.getName()).thenReturn("1");
+        // Arrange
         String productId = "PROD-1";
+        when(mockAuthentication.getName()).thenReturn("1");
+        when(mockAuthentication.isAuthenticated()).thenReturn(true);
 
         doNothing().when(orderProductService).removeFromCart(productId, "1");
 
+        // Act
         ResponseEntity<Void> response = controller.removeFromCart(productId, mockAuthentication);
 
+        // Assert
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(orderProductService, times(1)).removeFromCart(eq(productId), eq("1"));
     }
