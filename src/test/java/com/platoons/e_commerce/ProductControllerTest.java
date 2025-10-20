@@ -44,14 +44,14 @@ public class ProductControllerTest {
         ProductRepository.ProductSummaryProjection projection = mock(ProductRepository.ProductSummaryProjection.class);
         Page<ProductRepository.ProductSummaryProjection> page = new PageImpl<>(Collections.singletonList(projection));
 
-        when(productService.fetchProducts(pageable)).thenReturn(page);
+        when(productService.fetchProducts(pageable, null, null, null)).thenReturn(page);
 
         ResponseEntity<Page<ProductRepository.ProductSummaryProjection>> response = productController
-                .fetchProducts(pageable);
+                .fetchProducts(pageable, null, null, null);
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(1, response.getBody().getContent().size());
-        verify(productService, times(1)).fetchProducts(pageable);
+        verify(productService, times(1)).fetchProducts(pageable, null, null, null);
     }
 
     @Test
