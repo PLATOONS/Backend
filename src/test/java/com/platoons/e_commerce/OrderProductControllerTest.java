@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -89,8 +90,17 @@ class OrderProductControllerTest {
     void addToCart_createsCartAndLine_ok() {
         var req = new AddToCartRequestDto("PROD-1", 2, "red");
 
+        // --- ARREGLO FINAL ---
+        // 1. Creamos el producto mock
+        Product mockProduct = product("PROD-1", 100.0, 10.0, 5.0, 5);
+
+        // 2. Le asignamos un Set<String> con el color "red"
+        mockProduct.setAvailableColors(Set.of("red", "blue")); // O solo Set.of("red")
+
+        // 3. Configuramos el repositorio para que devuelva este producto ya configurado
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1"))
-                .thenReturn(Optional.of(product("PROD-1", 100.0, 10.0, 5.0, 5))); // precio final = 100*(1-0.1)-5 = 85
+                .thenReturn(Optional.of(mockProduct));
+        // --- FIN DEL ARREGLO ---
 
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
                 .thenReturn(Optional.of(customer(1L)));
@@ -98,11 +108,9 @@ class OrderProductControllerTest {
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
                 .thenReturn(Optional.of(cartStatus()));
 
-        // No existe orden CART aún
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any()))
                 .thenReturn(Optional.empty());
 
-        // Guardado de orden nueva
         when(orderRepository.save(any(Order.class)))
                 .thenAnswer(inv -> {
                     Order o = inv.getArgument(0);
@@ -110,15 +118,15 @@ class OrderProductControllerTest {
                     return o;
                 });
 
-        // Al final listamos líneas activas para recalcular totales
         when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(any(Order.class)))
-                .thenReturn(List.of()); // el service ya usa la línea creada si orderId==null; aquí orderId=99, pero igual recalcularemos luego
+                .thenReturn(List.of());
 
-        service.addToCart(req, "1");
+        // Esta vez, no debería lanzar la excepción
+        assertDoesNotThrow(() -> service.addToCart(req, "1"));
 
-        verify(orderRepository, times(1)).save(any(Order.class));
+        // Verificaciones
         verify(orderProductRepository, times(1)).save(any(OrderProduct.class));
-        verify(orderRepository, atLeastOnce()).save(any(Order.class)); // recalcula totales
+        verify(orderRepository, atLeastOnce()).save(any(Order.class));
     }
 
     // Si la línea existe, incrementa cantidad y recalcula total
