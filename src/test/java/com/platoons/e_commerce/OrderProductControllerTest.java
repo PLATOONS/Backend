@@ -85,22 +85,16 @@ class OrderProductControllerTest {
         return o;
     }
 
-    // Happy path: crea orden CART si no existe y crea línea nueva
     @Test
     void addToCart_createsCartAndLine_ok() {
         var req = new AddToCartRequestDto("PROD-1", 2, "red");
 
-        // --- ARREGLO FINAL ---
-        // 1. Creamos el producto mock
         Product mockProduct = product("PROD-1", 100.0, 10.0, 5.0, 5);
 
-        // 2. Le asignamos un Set<String> con el color "red"
-        mockProduct.setAvailableColors(Set.of("red", "blue")); // O solo Set.of("red")
+        mockProduct.setAvailableColors(Set.of("red", "blue"));
 
-        // 3. Configuramos el repositorio para que devuelva este producto ya configurado
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1"))
                 .thenReturn(Optional.of(mockProduct));
-        // --- FIN DEL ARREGLO ---
 
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
                 .thenReturn(Optional.of(customer(1L)));
@@ -121,7 +115,6 @@ class OrderProductControllerTest {
         when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(any(Order.class)))
                 .thenReturn(List.of());
 
-        // Esta vez, no debería lanzar la excepción
         assertDoesNotThrow(() -> service.addToCart(req, "1"));
 
         // Verificaciones
@@ -129,7 +122,6 @@ class OrderProductControllerTest {
         verify(orderRepository, atLeastOnce()).save(any(Order.class));
     }
 
-    // Si la línea existe, incrementa cantidad y recalcula total
     @Test
     void addToCart_incrementsExistingLine_ok() {
         var req = new AddToCartRequestDto("PROD-1", 1, null);
