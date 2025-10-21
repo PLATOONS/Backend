@@ -34,14 +34,20 @@ import com.platoons.e_commerce.repository.OrderRepository;
 import com.platoons.e_commerce.repository.OrderStatusRepository;
 import com.platoons.e_commerce.repository.ProductRepository;
 import com.platoons.e_commerce.service.impl.OrderProductServiceImpl;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test")
 class OrderProductControllerTest {
 
+    @MockitoBean
     private ProductRepository productRepository;
+    @MockitoBean
     private OrderRepository orderRepository;
+    @MockitoBean
     private OrderProductRepository orderProductRepository;
+    @MockitoBean
     private OrderStatusRepository orderStatusRepository;
+    @MockitoBean
     private CustomerRepository customerRepository;
 
     private OrderProductServiceImpl service;
@@ -108,7 +114,7 @@ class OrderProductControllerTest {
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1"))
                 .thenReturn(Optional.of(mockProduct));
 
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1"))
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("1"))
                 .thenReturn(Optional.of(customer("1")));
 
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
@@ -146,7 +152,7 @@ class OrderProductControllerTest {
         existing.setTotalPrice(400.0); // 2 * 200
 
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
         when(orderProductRepository.findByOrderAndProductAndColorAndDeletedAtIsNull(o, p, null)).thenReturn(Optional.of(existing));
@@ -180,7 +186,7 @@ class OrderProductControllerTest {
         Product p = product("PROD-1", 50.0, 0.0, 0.0, 5);
 
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(customer("1")));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("1")).thenReturn(Optional.of(customer("1")));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(cartStatus()));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any())).thenReturn(Optional.empty());
 
@@ -205,7 +211,7 @@ class OrderProductControllerTest {
         existing.setQuantity(2);
 
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
         when(orderProductRepository.findByOrderAndProductAndColorAndDeletedAtIsNull(o, p, null)).thenReturn(Optional.of(existing));
@@ -230,7 +236,7 @@ class OrderProductControllerTest {
         line.setQuantity(2);
         line.setTotalPrice(200.0);
 
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
 
