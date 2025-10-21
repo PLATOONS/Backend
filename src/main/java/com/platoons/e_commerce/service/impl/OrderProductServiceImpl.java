@@ -144,6 +144,47 @@ public class OrderProductServiceImpl implements IOrderProductService {
         orderRepository.save(order);
     }
 
+    @Override
+    @Transactional
+    public void updateQuantity(String productId, int quantity, String userId) {
+        if (quantity < 1) {
+            throw new BadRequestException("Quantity must be at least 1");
+        }
+
+        Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new EntityNotFoundException("Product", "productId", productId));
+
+        Customer customer = customerRepository.findByCustomerIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Customer", "customerId", userId));
+
+        OrderStatus cartStatus = orderStatusRepository.findByStatusNameIgnoreCase("CART")
+                .orElseThrow(() -> new EntityNotFoundException("OrderStatus", "statusName", "CART"));
+
+        Order order = orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(customer, cartStatus)
+                .orElseThrow(() -> new BadRequestException("No active cart found for user"));
+
+        OrderProduct line = orderProductRepository
+                .findByOrderAndProductProductIdAndDeletedAtIsNull(order, productId)
+                .orElseThrow(() -> new EntityNotFoundException("OrderProduct", "productId", productId));
+
+        if (quantity > product.getStockQuantity()) {
+            throw new BadRequestException("Quantity is greater than available stock");
+        }
+
+        line.setQuantity(quantity);
+        double unitPrice = resolveUnitPrice(product);
+        line.setTotalPrice(unitPrice * quantity);
+        orderProductRepository.save(line);
+
+        List<OrderProduct> activeLines = orderProductRepository.findAllByOrderAndDeletedAtIsNull(order);
+        double newSubtotal = activeLines.stream()
+                .mapToDouble(op -> op.getTotalPrice() != null ? op.getTotalPrice() : 0.0)
+                .sum();
+        order.setSubtotalAmount(newSubtotal);
+        order.setTotalAmount(newSubtotal);
+        orderRepository.save(order);
+    }
+
     private double resolveUnitPrice(Product p) {
         double price = p.getPrice();
         double discountPercent = p.getDiscount();
