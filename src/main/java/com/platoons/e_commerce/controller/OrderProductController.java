@@ -49,8 +49,8 @@ public class OrderProductController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadCredentialsException("User not logged in");
         }
-        String userId = authentication.getName();
-        orderProductService.addToCart(request, userId);
+        String username = authentication.getName();
+        orderProductService.addToCart(request, username);
         return ResponseEntity.ok(new GenericResponseDto("Product added to cart"));
     }
 
@@ -65,9 +65,9 @@ public class OrderProductController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadCredentialsException("User not logged in");
         }
-        String userId = authentication.getName();
-        log.info("RemoveFromCart user={}, productId={}", userId, productId);
-        orderProductService.removeFromCart(productId, userId);
+        String username = authentication.getName();
+        log.info("RemoveFromCart user={}, productId={}", username, productId);
+        orderProductService.removeFromCart(productId, username);
         return ResponseEntity.noContent().build();
     }
 
@@ -85,8 +85,8 @@ public class OrderProductController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadCredentialsException("User not logged in");
         }
-        String userId = authentication.getName();
-        orderProductService.updateQuantity(request.getProductId(), request.getQuantity(), userId);
+        String username = authentication.getName();
+        orderProductService.updateQuantity(request.getProductId(), request.getQuantity(), username);
         return ResponseEntity.ok(new GenericResponseDto(
                 "Quantity for product " + request.getProductId() + " updated to " + request.getQuantity()));
     }

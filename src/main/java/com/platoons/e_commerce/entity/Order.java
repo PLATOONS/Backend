@@ -73,11 +73,11 @@ public class Order extends BaseEntity {
 
     // Subtotal amount
     @NotNull(message = "Subtotal is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Subtotal must be positive")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Subtotal must be positive")
     private Double subtotalAmount;
 
     // Total amount
     @NotNull(message = "Total is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Total must be positive")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Total must be positive")
     private Double totalAmount;
 }

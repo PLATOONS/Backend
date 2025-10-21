@@ -35,7 +35,7 @@ public class OrderProductServiceImpl implements IOrderProductService {
 
     @Override
     @Transactional
-    public void addToCart(AddToCartRequestDto request, String userId) {
+    public void addToCart(AddToCartRequestDto request, String username) {
 
         if (request.quantity() == null || request.quantity() < 1) {
             throw new BadRequestException("Quantity must be at least 1");
@@ -43,16 +43,26 @@ public class OrderProductServiceImpl implements IOrderProductService {
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(request.productId())
                 .orElseThrow(() -> new EntityNotFoundException("Product", "productId", request.productId()));
         Customer customer = customerRepository
-                .findByCustomerIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", "customerId", userId));
+                .findByUsernameAndDeletedAtIsNull(username)
+                .orElseThrow(() -> new EntityNotFoundException("Customer", "username", username));
 
         if (request.quantity() > product.getStockQuantity()) {
             throw new BadRequestException("Quantity is greater than available stock");
         }
 
-        OrderStatus cartStatus = orderStatusRepository
-                .findByStatusNameIgnoreCase("CART")
-                .orElseThrow(() -> new EntityNotFoundException("OrderStatus", "statusName", "CART"));
+        Optional<OrderStatus> optionalCartStatus = orderStatusRepository
+                .findByStatusNameIgnoreCase("CART");
+
+        OrderStatus cartStatus;
+
+        if (optionalCartStatus.isEmpty()){
+            OrderStatus status = new OrderStatus();
+            status.setStatusName("CART");
+            status.setDescription("User's cart");
+            cartStatus = orderStatusRepository.save(status);
+        }else{
+            cartStatus = optionalCartStatus.get();
+        }
 
         Order order = orderRepository
                 .findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(customer, cartStatus)
@@ -68,7 +78,7 @@ public class OrderProductServiceImpl implements IOrderProductService {
         String color = (request.color() == null || request.color().isBlank()) ? null : request.color();
 
         Optional<OrderProduct> existingOpt = orderProductRepository
-                .findByOrderAndProductAndColor(order, product, color);
+                .findByOrderAndProductAndColorAndDeletedAtIsNull(order, product, color);
 
         OrderProduct line = existingOpt.orElseGet(() -> {
             OrderProduct l = new OrderProduct();
@@ -106,8 +116,8 @@ public class OrderProductServiceImpl implements IOrderProductService {
 
     @Override
     @Transactional
-    public void removeFromCart(String productId, String userId) {
-        var customerOpt = customerRepository.findByCustomerIdAndDeletedAtIsNull(userId);
+    public void removeFromCart(String productId, String username) {
+        var customerOpt = customerRepository.findByUsernameAndDeletedAtIsNull(username);
 
         if (customerOpt.isEmpty()) {
             return;
@@ -146,7 +156,7 @@ public class OrderProductServiceImpl implements IOrderProductService {
 
     @Override
     @Transactional
-    public void updateQuantity(String productId, int quantity, String userId) {
+    public void updateQuantity(String productId, int quantity, String username) {
         if (quantity < 1) {
             throw new BadRequestException("Quantity must be at least 1");
         }
@@ -154,8 +164,8 @@ public class OrderProductServiceImpl implements IOrderProductService {
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product", "productId", productId));
 
-        Customer customer = customerRepository.findByCustomerIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", "customerId", userId));
+        Customer customer = customerRepository.findByUsernameAndDeletedAtIsNull(username)
+                .orElseThrow(() -> new EntityNotFoundException("Customer", "username", username));
 
         OrderStatus cartStatus = orderStatusRepository.findByStatusNameIgnoreCase("CART")
                 .orElseThrow(() -> new EntityNotFoundException("OrderStatus", "statusName", "CART"));

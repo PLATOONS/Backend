@@ -4,10 +4,9 @@ import com.platoons.e_commerce.dto.AddToCartRequestDto;
 
 public interface IOrderProductService {
 
-    void addToCart(AddToCartRequestDto request, String userId);
+    void addToCart(AddToCartRequestDto request, String username);
 
-    void removeFromCart(String productId, String userId);
-
-    // New method to update quantity of a product in the user's order
-    void updateQuantity(String productId, int quantity, String userId);
+    void removeFromCart(String productId, String username);
+    
+    void updateQuantity(String productId, int quantity, String username);
 }

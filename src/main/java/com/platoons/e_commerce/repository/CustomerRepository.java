@@ -10,7 +10,7 @@ import com.platoons.e_commerce.entity.Customer;
 @Repository
 public interface CustomerRepository extends CrudRepository<Customer, String> {
 
-    Optional<Customer> findByCustomerIdAndDeletedAtIsNull(String productId);
+    Optional<Customer> findByCustomerIdAndDeletedAtIsNull(String customerId);
 
     Optional<Customer> findByUsernameAndDeletedAtIsNull(String username);
 

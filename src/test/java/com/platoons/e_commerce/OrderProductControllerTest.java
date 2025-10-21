@@ -149,7 +149,7 @@ class OrderProductControllerTest {
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
-        when(orderProductRepository.findByOrderAndProductAndColor(o, p, null)).thenReturn(Optional.of(existing));
+        when(orderProductRepository.findByOrderAndProductAndColorAndDeletedAtIsNull(o, p, null)).thenReturn(Optional.of(existing));
 
         when(orderProductRepository.findAllByOrder(o)).thenReturn(List.of(existing));
 
@@ -208,7 +208,7 @@ class OrderProductControllerTest {
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
-        when(orderProductRepository.findByOrderAndProductAndColor(o, p, null)).thenReturn(Optional.of(existing));
+        when(orderProductRepository.findByOrderAndProductAndColorAndDeletedAtIsNull(o, p, null)).thenReturn(Optional.of(existing));
 
         assertThrows(BadRequestException.class, () -> service.addToCart(req, "1"), "Quantity is greater than available stock");
         verify(orderProductRepository, never()).save(any());

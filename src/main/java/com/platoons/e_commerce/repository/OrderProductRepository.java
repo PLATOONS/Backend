@@ -11,7 +11,7 @@ import com.platoons.e_commerce.entity.Product;
 
 public interface OrderProductRepository extends CrudRepository<OrderProduct, Long> {
 
-    Optional<OrderProduct> findByOrderAndProductAndColor(Order order, Product product, String color);
+    Optional<OrderProduct> findByOrderAndProductAndColorAndDeletedAtIsNull(Order order, Product product, String color);
 
     List<OrderProduct> findAllByOrder(Order order);
 
