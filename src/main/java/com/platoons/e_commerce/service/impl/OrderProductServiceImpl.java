@@ -3,7 +3,7 @@ package com.platoons.e_commerce.service.impl;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Service; // Este import ya no es necesario, pero no hace daño
+import org.springframework.stereotype.Service;
 
 import com.platoons.e_commerce.dto.AddToCartRequestDto;
 import com.platoons.e_commerce.entity.Customer;
@@ -41,18 +41,10 @@ public class OrderProductServiceImpl implements IOrderProductService {
             throw new BadRequestException("Quantity must be at least 1");
         }
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(request.productId())
-                .orElseThrow(() -> new EntityNotFoundException("Product", "productId", request.productId().toString()));
-
-        Long customerId;
-        try {
-            customerId = Long.valueOf(userId);
-        } catch (NumberFormatException e) {
-            throw new BadRequestException("Invalid user id");
-        }
-
+                .orElseThrow(() -> new EntityNotFoundException("Product", "productId", request.productId()));
         Customer customer = customerRepository
-                .findByCustomerIdAndDeletedAtIsNull(customerId)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", "customerId", customerId.toString()));
+                .findByCustomerIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Customer", "customerId", userId));
 
         if (request.quantity() > product.getStockQuantity()) {
             throw new BadRequestException("Quantity is greater than available stock");
@@ -103,6 +95,7 @@ public class OrderProductServiceImpl implements IOrderProductService {
                 : List.of(line);
 
         double newSubtotal = lines.stream()
+                .filter(op -> op.getDeletedAt() == null)
                 .mapToDouble(op -> op.getTotalPrice() != null ? op.getTotalPrice() : 0.0)
                 .sum();
 
@@ -111,16 +104,11 @@ public class OrderProductServiceImpl implements IOrderProductService {
         orderRepository.save(order);
     }
 
+    @Override
+    @Transactional
     public void removeFromCart(String productId, String userId) {
+        var customerOpt = customerRepository.findByCustomerIdAndDeletedAtIsNull(userId);
 
-        Long customerId;
-        try {
-            customerId = Long.valueOf(userId);
-        } catch (NumberFormatException e) {
-            return;
-        }
-
-        var customerOpt = customerRepository.findByCustomerIdAndDeletedAtIsNull(customerId);
         if (customerOpt.isEmpty()) {
             return;
         }
@@ -134,13 +122,13 @@ public class OrderProductServiceImpl implements IOrderProductService {
 
         var orderOpt = orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(customer, cartStatus);
         if (orderOpt.isEmpty()) {
-            return; // 204
+            return;
         }
         var order = orderOpt.get();
 
         var lineOpt = orderProductRepository.findByOrderAndProductProductIdAndDeletedAtIsNull(order, productId);
         if (lineOpt.isEmpty()) {
-            return; // 204
+            return;
         }
         var line = lineOpt.get();
 
@@ -152,9 +140,8 @@ public class OrderProductServiceImpl implements IOrderProductService {
                 .mapToDouble(op -> op.getTotalPrice() != null ? op.getTotalPrice() : 0.0)
                 .sum();
         order.setSubtotalAmount(subtotal);
-        order.setTotalAmount(subtotal);
+        order.setTotalAmount(subtotal); // Update total as well
         orderRepository.save(order);
-
     }
 
     private double resolveUnitPrice(Product p) {
@@ -162,8 +149,10 @@ public class OrderProductServiceImpl implements IOrderProductService {
         double discountPercent = p.getDiscount();
         double discountAmount = p.getDiscountAmount();
 
-        double afterPercent = (discountPercent > 0) ? price * (1.0 - discountPercent / 100.0) : price;
-        double finalPrice = afterPercent - Math.max(0.0, discountAmount);
+        double priceAfterPercent = (discountPercent > 0) ? price * (1.0 - (discountPercent / 100.0)) : price;
+
+        double finalPrice = priceAfterPercent - discountAmount;
+
         return Math.max(0.0, finalPrice);
     }
 }

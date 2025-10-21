@@ -1,6 +1,5 @@
 package com.platoons.e_commerce;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -76,6 +76,12 @@ class OrderProductControllerTest {
         return c;
     }
 
+    private Customer customer(String id) {
+        Customer c = new Customer();
+        c.setCustomerId(id);
+        return c;
+    }
+
     private OrderStatus cartStatus() {
         OrderStatus s = new OrderStatus();
         s.setStatusId(10L);
@@ -102,8 +108,8 @@ class OrderProductControllerTest {
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1"))
                 .thenReturn(Optional.of(mockProduct));
 
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
-                .thenReturn(Optional.of(customer(1L)));
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1"))
+                .thenReturn(Optional.of(customer("1")));
 
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
                 .thenReturn(Optional.of(cartStatus()));
@@ -117,13 +123,8 @@ class OrderProductControllerTest {
                     o.setOrderId(99L);
                     return o;
                 });
-
-        when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(any(Order.class)))
-                .thenReturn(List.of());
-
         assertDoesNotThrow(() -> service.addToCart(req, "1"));
 
-        // Verificaciones
         verify(orderProductRepository, times(1)).save(any(OrderProduct.class));
         verify(orderRepository, atLeastOnce()).save(any(Order.class));
     }
@@ -132,8 +133,8 @@ class OrderProductControllerTest {
     void addToCart_incrementsExistingLine_ok() {
         var req = new AddToCartRequestDto("PROD-1", 1, null);
 
-        Product p = product("PROD-1", 200.0, 0.0, 0.0, 10); // unit = 200
-        Customer c = customer(1L);
+        Product p = product("PROD-1", 200.0, 0.0, 0.0, 10);
+        Customer c = customer("1");
         OrderStatus s = cartStatus();
         Order o = order(50L, c, s);
 
@@ -145,17 +146,17 @@ class OrderProductControllerTest {
         existing.setTotalPrice(400.0); // 2 * 200
 
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(c));
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
         when(orderProductRepository.findByOrderAndProductAndColor(o, p, null)).thenReturn(Optional.of(existing));
 
-        when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(o)).thenReturn(List.of(existing));
+        when(orderProductRepository.findAllByOrder(o)).thenReturn(List.of(existing));
 
         service.addToCart(req, "1");
 
         assertEquals(3, existing.getQuantity());           // 2 + 1
-        assertEquals(600.0, existing.getTotalPrice());      // 3 * 200
+        assertEquals(600.0, existing.getTotalPrice());
         verify(orderProductRepository).save(existing);
         verify(orderRepository).save(o);
     }
@@ -169,39 +170,67 @@ class OrderProductControllerTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> service.addToCart(req, "1"));
+        verify(customerRepository, never()).findByCustomerIdAndDeletedAtIsNull(anyString());
+    }
+
+    // 400: cantidad < stock
+    @Test
+    void addToCart_newQtyGreaterThanStock_throws400() {
+        var req = new AddToCartRequestDto("PROD-1", 10, null);
+        Product p = product("PROD-1", 50.0, 0.0, 0.0, 5);
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(customer("1")));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(cartStatus()));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any())).thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class, () -> service.addToCart(req, "1"), "Quantity is greater than available stock");
+        verify(orderProductRepository, never()).save(any());
+        verify(orderRepository, never()).save(any());
     }
 
     // 400: cantidad > stock
     @Test
-    void addToCart_quantityGreaterThanStock_throws400() {
-        var req = new AddToCartRequestDto("PROD-1", 10, null);
-        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1"))
-                .thenReturn(Optional.of(product("PROD-1", 50.0, 0.0, 0.0, 5))); // stock 5
+    void addToCart_existingQtyPlusNewGreaterThanStock_throws400() {
+        var req = new AddToCartRequestDto("PROD-1", 4, null); // Pide 4 más
+        Product p = product("PROD-1", 50.0, 0.0, 0.0, 5); // Stock 5
+        Customer c = customer("1");
+        OrderStatus s = cartStatus();
+        Order o = order(50L, c, s);
 
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
-                .thenReturn(Optional.of(customer(1L)));
-        when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
-                .thenReturn(Optional.of(cartStatus()));
+        OrderProduct existing = new OrderProduct();
+        existing.setOrder(o);
+        existing.setProduct(p);
+        existing.setColor(null);
+        existing.setQuantity(2);
 
-        assertThrows(BadRequestException.class, () -> service.addToCart(req, "1"));
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
+        when(orderProductRepository.findByOrderAndProductAndColor(o, p, null)).thenReturn(Optional.of(existing));
+
+        assertThrows(BadRequestException.class, () -> service.addToCart(req, "1"), "Quantity is greater than available stock");
         verify(orderProductRepository, never()).save(any());
+        verify(orderRepository, never()).save(any());
     }
 
-    // removeFromCart: línea existe → soft delete + recalcular totales
+    // removeFromCart
     @Test
     void removeFromCart_softDelete_ok() {
         Product p = product("PROD-1", 100.0, 0.0, 0.0, 10);
-        Customer c = customer(1L);
+        Customer c = customer("1");
         OrderStatus s = cartStatus();
         Order o = order(77L, c, s);
 
         OrderProduct line = new OrderProduct();
+        line.setOrderProductId(123L);
         line.setOrder(o);
         line.setProduct(p);
         line.setQuantity(2);
         line.setTotalPrice(200.0);
 
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(c));
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1")).thenReturn(Optional.of(c));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
 
@@ -209,41 +238,53 @@ class OrderProductControllerTest {
                 .thenReturn(Optional.of(line));
 
         when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(o))
-                .thenReturn(List.of()); // tras borrar, no quedan activas
+                .thenReturn(List.of());
 
         service.removeFromCart("PROD-1", "1");
-
         assertNotNull(line.getDeletedAt());
-        assertTrue(
-                line.getDeletedAt().isBefore(
-                        Instant.now().plusSeconds(5).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
-                )
-        );
-        assertEquals(0.0, o.getSubtotalAmount());
-        assertEquals(0.0, o.getTotalAmount());
+        assertTrue(line.getDeletedAt().isBefore(java.time.LocalDateTime.now().plusSeconds(1)));
+
         verify(orderProductRepository).save(line);
         verify(orderRepository).save(o);
+        assertEquals(0.0, o.getSubtotalAmount());
+        assertEquals(0.0, o.getTotalAmount());
+
     }
 
     @Test
     void removeFromCart_notFound_anything_noException() {
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1"))
                 .thenReturn(Optional.empty());
-
         assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
-
-        when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
-                .thenReturn(Optional.of(customer(1L)));
+        verify(orderStatusRepository, never()).findByStatusNameIgnoreCase(any());
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1"))
+                .thenReturn(Optional.of(customer("1")));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
                 .thenReturn(Optional.empty());
-
         assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
+        verify(orderRepository, never()).findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any());
 
+        // Caso 3: orden no existe
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1"))
+                .thenReturn(Optional.of(customer("1")));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
                 .thenReturn(Optional.of(cartStatus()));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any()))
                 .thenReturn(Optional.empty());
-
         assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
+        verify(orderProductRepository, never()).findByOrderAndProductProductIdAndDeletedAtIsNull(any(), any());
+
+        when(customerRepository.findByCustomerIdAndDeletedAtIsNull("1"))
+                .thenReturn(Optional.of(customer("1")));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
+                .thenReturn(Optional.of(cartStatus()));
+        Order existingOrder = order(1L, customer("1"), cartStatus());
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any()))
+                .thenReturn(Optional.of(existingOrder));
+        when(orderProductRepository.findByOrderAndProductProductIdAndDeletedAtIsNull(existingOrder, "PROD-1"))
+                .thenReturn(Optional.empty());
+        assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
+        verify(orderProductRepository, never()).save(any(OrderProduct.class));
+        verify(orderRepository, never()).save(any(Order.class));
     }
 }
