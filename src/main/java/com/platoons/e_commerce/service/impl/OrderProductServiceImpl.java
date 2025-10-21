@@ -2,9 +2,8 @@ package com.platoons.e_commerce.service.impl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service; // Este import ya no es necesario, pero no hace daño
 
 import com.platoons.e_commerce.dto.AddToCartRequestDto;
 import com.platoons.e_commerce.entity.Customer;
@@ -75,12 +74,6 @@ public class OrderProductServiceImpl implements IOrderProductService {
                 });
 
         String color = (request.color() == null || request.color().isBlank()) ? null : request.color();
-        if (color != null) {
-            Set<String> colors = product.getAvailableColors();
-            if (colors == null || !colors.contains(color)) {
-                throw new BadRequestException("Product isn't available in given color");
-            }
-        }
 
         Optional<OrderProduct> existingOpt = orderProductRepository
                 .findByOrderAndProductAndColor(order, product, color);

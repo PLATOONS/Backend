@@ -57,8 +57,6 @@ public class Product extends BaseEntity {
 
     private String measurements;
 
-    private Set<String> availableColors;
-
     @NotNull(message = "Description is required")
     @NotBlank(message = "Description is required")
     @Column(columnDefinition = "TEXT")

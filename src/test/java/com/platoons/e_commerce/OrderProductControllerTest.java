@@ -1,5 +1,25 @@
 package com.platoons.e_commerce;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.test.context.ActiveProfiles;
+
 import com.platoons.e_commerce.dto.AddToCartRequestDto;
 import com.platoons.e_commerce.entity.Customer;
 import com.platoons.e_commerce.entity.Order;
@@ -14,18 +34,6 @@ import com.platoons.e_commerce.repository.OrderRepository;
 import com.platoons.e_commerce.repository.OrderStatusRepository;
 import com.platoons.e_commerce.repository.ProductRepository;
 import com.platoons.e_commerce.service.impl.OrderProductServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 class OrderProductControllerTest {
@@ -91,8 +99,6 @@ class OrderProductControllerTest {
 
         Product mockProduct = product("PROD-1", 100.0, 10.0, 5.0, 5);
 
-        mockProduct.setAvailableColors(Set.of("red", "blue"));
-
         when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1"))
                 .thenReturn(Optional.of(mockProduct));
 
@@ -148,7 +154,7 @@ class OrderProductControllerTest {
 
         service.addToCart(req, "1");
 
-        assertEquals(3, existing.getQuantity());            // 2 + 1
+        assertEquals(3, existing.getQuantity());           // 2 + 1
         assertEquals(600.0, existing.getTotalPrice());      // 3 * 200
         verify(orderProductRepository).save(existing);
         verify(orderRepository).save(o);
@@ -219,16 +225,13 @@ class OrderProductControllerTest {
         verify(orderRepository).save(o);
     }
 
-    // removeFromCart: si no hay orden/linea/cliente/estado → no lanza excepción (204 contract)
     @Test
     void removeFromCart_notFound_anything_noException() {
-        // cliente no existe
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
                 .thenReturn(Optional.empty());
 
         assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
 
-        // estado no existe
         when(customerRepository.findByCustomerIdAndDeletedAtIsNull(1L))
                 .thenReturn(Optional.of(customer(1L)));
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
@@ -236,7 +239,6 @@ class OrderProductControllerTest {
 
         assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
 
-        // orden no existe
         when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
                 .thenReturn(Optional.of(cartStatus()));
         when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any()))
