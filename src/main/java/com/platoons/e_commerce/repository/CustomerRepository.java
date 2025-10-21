@@ -16,5 +16,4 @@ public interface CustomerRepository extends CrudRepository<Customer, String> {
 
     Optional<Customer> findByEmailAndDeletedAtIsNull(String email);
 
-    Optional<Customer> findByCustomerIdAndDeletedAtIsNull(Long customerId);
 }
