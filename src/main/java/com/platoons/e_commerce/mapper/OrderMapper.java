@@ -1,14 +1,7 @@
 package com.platoons.e_commerce.mapper;
 
-import com.platoons.e_commerce.dto.OrderResponseDto;
-import com.platoons.e_commerce.dto.CreateOrderRequestDto;
-import com.platoons.e_commerce.dto.OrderDto;
-import com.platoons.e_commerce.dto.UpdateOrderDto;
-import com.platoons.e_commerce.dto.CustomerDto;
-import com.platoons.e_commerce.dto.CouponDto;
-import com.platoons.e_commerce.entity.Customer;
-import com.platoons.e_commerce.entity.Coupon;
-import com.platoons.e_commerce.entity.Order;
+import com.platoons.e_commerce.dto.*;
+import com.platoons.e_commerce.entity.*;
 
 public class OrderMapper {
 
