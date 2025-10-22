@@ -95,4 +95,19 @@ public class OrderProductController {
         String username = authentication.getName();
         return ResponseEntity.ok(orderProductService.fetchCartProducts(username));
     }
+
+    @Operation(summary = "Get total unique products in cart", description = "Returns the total number of different products in the logged in user's cart", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Total unique products", content = @Content(schema = @Schema(implementation = CartCountResponseDto.class))),
+        @ApiResponse(responseCode = "401", description = "User not logged in")
+    })
+    @GetMapping("/count")
+    public ResponseEntity<CartCountResponseDto> countUniqueProducts(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadCredentialsException("User not logged in");
+        }
+        String userId = authentication.getName();
+        int count = orderProductService.countUniqueProductsInCart(userId);
+        return ResponseEntity.ok(new CartCountResponseDto(count));
+    }
 }
