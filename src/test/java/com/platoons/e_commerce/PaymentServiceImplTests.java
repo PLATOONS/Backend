@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import com.platoons.e_commerce.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -24,7 +25,6 @@ import com.platoons.e_commerce.dto.UpdatePaymentDto;
 import com.platoons.e_commerce.entity.Payment;
 import com.platoons.e_commerce.exceptions.EntityNotFoundException;
 import com.platoons.e_commerce.mapper.PaymentMapper;
-import com.platoons.e_commerce.repository.PaymentRepository;
 import com.platoons.e_commerce.service.impl.PaymentServiceImpl;
 
 public class PaymentServiceImplTests {
@@ -34,7 +34,14 @@ public class PaymentServiceImplTests {
     @BeforeEach
     void setUp(){
         paymentRepository = mock(PaymentRepository.class);
-        paymentServiceImpl = new PaymentServiceImpl(paymentRepository);
+        OrderRepository orderRepository = mock(OrderRepository.class);
+        OrderStatusRepository orderStatusRepository = mock(OrderStatusRepository.class);
+        CustomerRepository customerRepository = mock(CustomerRepository.class);
+        OrderProductRepository orderProductRepository = mock(OrderProductRepository.class);
+        CouponRepository couponRepository = mock(CouponRepository.class);
+
+        paymentServiceImpl = new PaymentServiceImpl(paymentRepository, customerRepository,
+                orderRepository, orderStatusRepository, orderProductRepository, couponRepository);
     }
 
     @Test

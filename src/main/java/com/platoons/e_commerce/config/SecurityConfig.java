@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/hello").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/review/**").authenticated()
                 .requestMatchers("/api/v1/orderProduct/**").authenticated()
+                .requestMatchers(("/api/v1/payment/checkout")).authenticated()
                 .anyRequest().permitAll())
             .addFilterBefore(new JWTValidatorFilter(jwtService), BasicAuthenticationFilter.class)
             .formLogin(AbstractHttpConfigurer::disable)
