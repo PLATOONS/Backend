@@ -72,4 +72,25 @@ public class OrderMapper {
 
         return order;
     }
+
+    public static OrderResponseDto mapOrderToOrderResponseDto(Order order) {
+        OrderResponseDto dto = new OrderResponseDto();
+        dto.setOrderId(order.getOrderId());
+        dto.setSubTotalAmount(order.getSubtotalAmount());
+        dto.setTotalAmount(order.getTotalAmount());
+
+        if (order.getCustomer() != null) {
+            dto.setCustomerId(order.getCustomer().getCustomerId());
+            dto.setCustomerUsername(order.getCustomer().getUsername());
+            dto.setCustomerEmail(order.getCustomer().getEmail());
+        }
+
+        if (order.getCoupon() != null) {
+            dto.setCouponId(order.getCoupon().getCouponId());
+            dto.setCouponCode(order.getCoupon().getCouponCode());
+            dto.setDiscountAmount(order.getCoupon().getDiscountAmount());
+        }
+
+        return dto;
+    }
 }
