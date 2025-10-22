@@ -55,7 +55,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public List<OrderDto> getOrdersByUser(String username) {
+    public List<OrderResponseDto> getOrdersByUser(String username) {
         var orders = orderRepository.findAllByCustomerUsernameAndDeletedAtIsNull(username);
 
         return orders.stream()
