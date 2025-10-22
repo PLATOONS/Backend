@@ -676,6 +676,23 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Fetch product reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/review/prod001",
+							"path": [
+								"api",
+								"v1",
+								"review",
+								"prod001"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
