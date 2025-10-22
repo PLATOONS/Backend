@@ -1,5 +1,6 @@
 package com.platoons.e_commerce.controller;
 
+import com.platoons.e_commerce.dto.CheckoutDto;
 import com.platoons.e_commerce.dto.CreatePaymentRequestDto;
 import com.platoons.e_commerce.dto.ErrorResponseDto;
 import com.platoons.e_commerce.dto.PaymentDto;
@@ -113,6 +114,30 @@ public class PaymentController {
         log.info("Payment updated with id {}", savedPaymentId);
 
         return ResponseEntity.created(uri).body(new GenericResponseDto(" Payment updated"));
+    }
+
+    @Operation(summary = "Checkout cart", description = "Processes checkout for the logged-in user's cart")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Checkout successful",
+                     content = @Content(schema = @Schema(implementation = GenericResponseDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid checkout details",
+                     content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+        @ApiResponse(responseCode = "404", description = "Cart or coupon not found",
+                     content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
+    @PostMapping(value = "/checkout", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GenericResponseDto> checkout(
+            @Parameter(description = "Checkout details", required = true)
+            @Valid @RequestBody CheckoutDto checkoutDto) {
+        log.info("Processing checkout");
+        String paymentId = paymentService.checkout(checkoutDto);
+
+        URI uri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/payment/{id}")
+                .build(paymentId);
+
+        log.info("Checkout successful with payment id {}", paymentId);
+
+        return ResponseEntity.created(uri).body(new GenericResponseDto("Checkout successful"));
     }
 
 }
