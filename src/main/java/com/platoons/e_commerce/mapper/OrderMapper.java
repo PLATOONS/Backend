@@ -13,8 +13,8 @@ import com.platoons.e_commerce.entity.Order;
 public class OrderMapper {
 
     public static Order mapCreateOrderRequestDtoToOrder(CreateOrderRequestDto orderDto, Order order) {
-        order.setSubtotalAmount(orderDto.getSubTotalAmount());
-        order.setTotalAmount(orderDto.getTotalAmout());
+        order.setSubtotalAmount(orderDto.getSubtotalAmount());
+        order.setTotalAmount(orderDto.getTotalAmount());
 
         Customer customer = new Customer();
         customer.setCustomerId(String.valueOf(orderDto.getCustomer()));
@@ -31,7 +31,7 @@ public class OrderMapper {
 
     public static OrderDto mapOrderToOrderDto(Order order, OrderDto orderDto) {
         orderDto.setOrderId(order.getOrderId());
-        orderDto.setSubTotalAmout(order.getSubtotalAmount()); // usar el nombre exacto del DTO
+        orderDto.setSubtotalAmount(order.getSubtotalAmount());
         orderDto.setTotalAmount(order.getTotalAmount());
 
         CustomerDto customerDto = new CustomerDto();
@@ -56,8 +56,8 @@ public class OrderMapper {
     }
 
     public static Order mapUpdateOrderDtoToOrder(UpdateOrderDto orderDto, Order order) {
-        order.setSubtotalAmount(orderDto.getSubTotalAmount());
-        order.setTotalAmount(orderDto.getTotalAmout());
+        order.setSubtotalAmount(orderDto.getSubtotalAmount());
+        order.setTotalAmount(orderDto.getTotalAmount());
 
         Customer customer = new Customer();
         customer.setCustomerId(String.valueOf(orderDto.getCustomer()));
@@ -77,7 +77,7 @@ public class OrderMapper {
     public static OrderResponseDto mapOrderToOrderResponseDto(Order order) {
         OrderResponseDto dto = new OrderResponseDto();
         dto.setOrderId(order.getOrderId());
-        dto.setSubTotalAmount(order.getSubtotalAmount());
+        dto.setSubtotalAmount(order.getSubtotalAmount());
         dto.setTotalAmount(order.getTotalAmount());
 
         if (order.getCustomer() != null) {
