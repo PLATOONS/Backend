@@ -56,8 +56,6 @@ public class ProductServiceImpl implements IProductService {
             throw new BadRequestException("Min price is greater than max price");
         }
 
-        System.out.println(category);
-
         return productRepository.findAllSummaries(pageable, category, minPrice, maxPrice);
     }
 
