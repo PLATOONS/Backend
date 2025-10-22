@@ -1,9 +1,7 @@
 package com.platoons.e_commerce.mapper;
 
 import com.platoons.e_commerce.dto.*;
-import com.platoons.e_commerce.entity.Customer;
-import com.platoons.e_commerce.entity.Coupon;
-import com.platoons.e_commerce.entity.Order;
+import com.platoons.e_commerce.entity.*;
 
 public class OrderMapper {
 
@@ -29,15 +27,17 @@ public class OrderMapper {
         orderDto.setSubTotalAmout(order.getSubtotalAmount());
         orderDto.setTotalAmount(order.getTotalAmount());
 
-        CustomerDto customerDto = new CustomerDto();
-        customerDto.setCustomerId(order.getCustomer().getCustomerId());
-        customerDto.setRegistrationDate(order.getCustomer().getRegistrationDate());
-        customerDto.setUsername(order.getCustomer().getUsername());
-        customerDto.setEmail(order.getCustomer().getEmail());
-        customerDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
-        customerDto.setFirstName(order.getCustomer().getFirstName());
-        customerDto.setLastName(order.getCustomer().getLastName());
-        orderDto.setCustomer(customerDto);
+        if (order.getCustomer() != null) {
+            CustomerDto customerDto = new CustomerDto();
+            customerDto.setCustomerId(order.getCustomer().getCustomerId());
+            customerDto.setUsername(order.getCustomer().getUsername());
+            customerDto.setEmail(order.getCustomer().getEmail());
+            customerDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
+            customerDto.setFirstName(order.getCustomer().getFirstName());
+            customerDto.setLastName(order.getCustomer().getLastName());
+            customerDto.setRegistrationDate(order.getCustomer().getRegistrationDate());
+            orderDto.setCustomer(customerDto);
+        }
 
         if (order.getCoupon() != null) {
             CouponDto couponDto = new CouponDto();
@@ -74,8 +74,10 @@ public class OrderMapper {
         dto.setOrderId(order.getOrderId());
         dto.setSubtotalAmount(order.getSubtotalAmount());
         dto.setTotalAmount(order.getTotalAmount());
-        dto.setStatus(order.getOrderStatus() != null ? order.getOrderStatus().name() : null);
-        dto.setCreatedAt(order.getCreatedAt());
+
+        if (order.getOrderStatus() != null) {
+            dto.setStatus(order.getOrderStatus().getStatusName()); // corregido
+        }
 
         if (order.getCustomer() != null) {
             dto.setCustomerId(order.getCustomer().getCustomerId());
