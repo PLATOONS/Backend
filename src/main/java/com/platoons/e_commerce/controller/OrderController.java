@@ -123,13 +123,13 @@ public class OrderController {
         @ApiResponse(responseCode = "401", description = "User not logged in")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<OrderDto>> getUserOrders(Authentication authentication) {
+    public ResponseEntity<List<OrderResponseDto>> getUserOrders(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadCredentialsException("User not logged in");
         }
 
         String username = authentication.getName();
-        List<OrderDto> orders = orderService.getOrdersByUser(username);
+        List<OrderResponseDto> orders = orderService.getOrdersByUser(username);
         return ResponseEntity.ok(orders);
     }
 }
