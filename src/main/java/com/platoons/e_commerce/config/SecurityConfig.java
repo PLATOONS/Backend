@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.stereotype.Component;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @Component
@@ -30,7 +31,9 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(req -> req
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/v1/hello").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/review/**").authenticated()
                 .anyRequest().permitAll())
             .addFilterBefore(new JWTValidatorFilter(jwtService), BasicAuthenticationFilter.class)
             .formLogin(AbstractHttpConfigurer::disable)

@@ -18,4 +18,7 @@ public interface OrderProductRepository extends CrudRepository<OrderProduct, Lon
     Optional<OrderProduct> findByOrderAndProductProductIdAndDeletedAtIsNull(Order order, String productId);
 
     List<OrderProduct> findAllByOrderAndDeletedAtIsNull(Order order);
+
+    // The name is kinda long... but it works
+    Optional<OrderProduct> findFirstByProductProductIdAndOrderCustomerUsernameAndOrderOrderStatusStatusNameAndDeletedAtIsNull(String productId, String username, String statusName);
 }
