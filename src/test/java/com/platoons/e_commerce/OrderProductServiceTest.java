@@ -37,7 +37,7 @@ import com.platoons.e_commerce.service.impl.OrderProductServiceImpl;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test")
-class OrderProductControllerTest {
+class OrderProductServiceTest {
 
     @MockitoBean
     private ProductRepository productRepository;
@@ -292,5 +292,198 @@ class OrderProductControllerTest {
         assertDoesNotThrow(() -> service.removeFromCart("PROD-1", "1"));
         verify(orderProductRepository, never()).save(any(OrderProduct.class));
         verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    // updateQuantity tests
+    @Test
+    void updateQuantity_success_ok() {
+        Product p = product("PROD-1", 100.0, 10.0, 5.0, 10);
+        Customer c = customer("1");
+        OrderStatus s = cartStatus();
+        Order o = order(50L, c, s);
+
+        OrderProduct line = new OrderProduct();
+        line.setOrderProductId(1L);
+        line.setOrder(o);
+        line.setProduct(p);
+        line.setQuantity(2);
+        line.setTotalPrice(170.0); // 2 * (100 * 0.9 - 5) = 2 * 85
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("user1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
+        when(orderProductRepository.findByOrderAndProductProductIdAndDeletedAtIsNull(o, "PROD-1"))
+                .thenReturn(Optional.of(line));
+        when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(o)).thenReturn(List.of(line));
+
+        service.updateQuantity("PROD-1", 5, "user1");
+
+        assertEquals(5, line.getQuantity());
+        assertEquals(425.0, line.getTotalPrice()); // 5 * 85
+        verify(orderProductRepository).save(line);
+        verify(orderRepository).save(o);
+        assertEquals(425.0, o.getSubtotalAmount());
+        assertEquals(425.0, o.getTotalAmount());
+    }
+
+    @Test
+    void updateQuantity_quantityLessThanOne_throws400() {
+        assertThrows(BadRequestException.class, 
+            () -> service.updateQuantity("PROD-1", 0, "user1"),
+            "Quantity must be at least 1");
+        
+        assertThrows(BadRequestException.class, 
+            () -> service.updateQuantity("PROD-1", -5, "user1"),
+            "Quantity must be at least 1");
+
+        verify(productRepository, never()).findByProductIdAndDeletedAtIsNull(any());
+    }
+
+    @Test
+    void updateQuantity_productNotFound_throws404() {
+        when(productRepository.findByProductIdAndDeletedAtIsNull("NOPE"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, 
+            () -> service.updateQuantity("NOPE", 5, "user1"));
+
+        verify(customerRepository, never()).findByUsernameAndDeletedAtIsNull(any());
+    }
+
+    @Test
+    void updateQuantity_customerNotFound_throws404() {
+        Product p = product("PROD-1", 100.0, 0.0, 0.0, 10);
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("unknown")).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, 
+            () -> service.updateQuantity("PROD-1", 5, "unknown"));
+
+        verify(orderStatusRepository, never()).findByStatusNameIgnoreCase(any());
+    }
+
+    @Test
+    void updateQuantity_cartStatusNotFound_throws404() {
+        Product p = product("PROD-1", 100.0, 0.0, 0.0, 10);
+        Customer c = customer("1");
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("user1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, 
+            () -> service.updateQuantity("PROD-1", 5, "user1"));
+
+        verify(orderRepository, never()).findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(any(), any());
+    }
+
+    @Test
+    void updateQuantity_noActiveCart_throws400() {
+        Product p = product("PROD-1", 100.0, 0.0, 0.0, 10);
+        Customer c = customer("1");
+        OrderStatus s = cartStatus();
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("user1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s))
+                .thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class, 
+            () -> service.updateQuantity("PROD-1", 5, "user1"),
+            "No active cart found for user");
+
+        verify(orderProductRepository, never()).findByOrderAndProductProductIdAndDeletedAtIsNull(any(), any());
+    }
+
+    @Test
+    void updateQuantity_orderProductNotFound_throws404() {
+        Product p = product("PROD-1", 100.0, 0.0, 0.0, 10);
+        Customer c = customer("1");
+        OrderStatus s = cartStatus();
+        Order o = order(50L, c, s);
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("user1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
+        when(orderProductRepository.findByOrderAndProductProductIdAndDeletedAtIsNull(o, "PROD-1"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, 
+            () -> service.updateQuantity("PROD-1", 5, "user1"));
+
+        verify(orderProductRepository, never()).save(any());
+    }
+
+    @Test
+    void updateQuantity_quantityExceedsStock_throws400() {
+        Product p = product("PROD-1", 100.0, 0.0, 0.0, 10);
+        Customer c = customer("1");
+        OrderStatus s = cartStatus();
+        Order o = order(50L, c, s);
+
+        OrderProduct line = new OrderProduct();
+        line.setOrderProductId(1L);
+        line.setOrder(o);
+        line.setProduct(p);
+        line.setQuantity(2);
+        line.setTotalPrice(200.0);
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("user1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
+        when(orderProductRepository.findByOrderAndProductProductIdAndDeletedAtIsNull(o, "PROD-1"))
+                .thenReturn(Optional.of(line));
+
+        assertThrows(BadRequestException.class, 
+            () -> service.updateQuantity("PROD-1", 15, "user1"),
+            "Quantity is greater than available stock");
+
+        verify(orderProductRepository, never()).save(any());
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateQuantity_withMultipleOrderProducts_updatesSubtotalCorrectly() {
+        Product p1 = product("PROD-1", 100.0, 0.0, 0.0, 20);
+        Product p2 = product("PROD-2", 50.0, 0.0, 0.0, 20);
+        Customer c = customer("1");
+        OrderStatus s = cartStatus();
+        Order o = order(50L, c, s);
+
+        OrderProduct line1 = new OrderProduct();
+        line1.setOrderProductId(1L);
+        line1.setOrder(o);
+        line1.setProduct(p1);
+        line1.setQuantity(2);
+        line1.setTotalPrice(200.0);
+
+        OrderProduct line2 = new OrderProduct();
+        line2.setOrderProductId(2L);
+        line2.setOrder(o);
+        line2.setProduct(p2);
+        line2.setQuantity(3);
+        line2.setTotalPrice(150.0);
+
+        when(productRepository.findByProductIdAndDeletedAtIsNull("PROD-1")).thenReturn(Optional.of(p1));
+        when(customerRepository.findByUsernameAndDeletedAtIsNull("user1")).thenReturn(Optional.of(c));
+        when(orderStatusRepository.findByStatusNameIgnoreCase("CART")).thenReturn(Optional.of(s));
+        when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(c, s)).thenReturn(Optional.of(o));
+        when(orderProductRepository.findByOrderAndProductProductIdAndDeletedAtIsNull(o, "PROD-1"))
+                .thenReturn(Optional.of(line1));
+        when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(o)).thenReturn(List.of(line1, line2));
+
+        service.updateQuantity("PROD-1", 5, "user1");
+
+        assertEquals(5, line1.getQuantity());
+        assertEquals(500.0, line1.getTotalPrice()); // 5 * 100
+        verify(orderProductRepository).save(line1);
+        verify(orderRepository).save(o);
+        assertEquals(650.0, o.getSubtotalAmount()); // 500 + 150
+        assertEquals(650.0, o.getTotalAmount());
     }
 }

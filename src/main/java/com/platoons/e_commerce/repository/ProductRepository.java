@@ -28,6 +28,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
         String getImageUrl();
         Instant getCreatedAt();
         String getCategory();
+        Integer getReviews();
     }
 
     // JPQL con promedio de rating (AVG) y cálculo de precio con descuento
@@ -42,7 +43,14 @@ public interface ProductRepository extends JpaRepository<Product, String> {
           p.name as productName,
           (select MIN(i.imageName) from ProductImage i where i.product = p and i.deletedAt is null) as imageUrl,
           p.createdAt as createdAt,
-          p.category.name as category
+          p.category.name as category,
+          (select count(*) from Review rv
+             left join rv.orderProduct ro
+             left join ro.product pr
+             where pr.productId = p.productId
+             and pr.deletedAt is null
+             and ro.deletedAt is null
+             and rv.deletedAt is null) as reviews
         from Product p
         left join p.orderProducts o
         left join o.reviews r
@@ -56,4 +64,19 @@ public interface ProductRepository extends JpaRepository<Product, String> {
 
     @Transactional
     Optional<Product> findByProductIdAndDeletedAtIsNull(String productId);
+
+    @Query(
+            """
+                select case when count(*) > 0 then true else false end
+                from OrderProduct op
+                left join op.product p
+                left join op.order o
+                left join o.customer c
+                left join o.orderStatus s
+                where p.productId = :productId
+                and c.username = :username
+                and s.statusName = 'COMPLETED'
+            """
+    )
+    boolean userBoughtProduct(String username, String productId); // Might need to change this for the status name
 }

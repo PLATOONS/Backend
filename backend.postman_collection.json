@@ -1,0 +1,685 @@
+{
+	"info": {
+		"_postman_id": "d15f11e5-7acf-4090-9751-059945f2c0ca",
+		"name": "backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35355038",
+		"_collection_link": "https://s22222-5137.postman.co/workspace/e-commerce~44c95278-5622-4fe4-b704-9150f427edaa/collection/35355038-d15f11e5-7acf-4090-9751-059945f2c0ca?action=share&source=collection_link&creator=35355038"
+	},
+	"item": [
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "Post new product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f07b9ae-5834-4210-8777-e4565524e40a"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f07b9ae-987b-4350-b93a-dd272b7f3c70"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f0ac669-6dfd-4ae0-887e-1397e3a9a742"
+								},
+								{
+									"key": "productDto",
+									"value": "{\"name\":\"Tray Table\",\"discount\":0,\"measurements\":\"17 1/2x20 5/8 \\\"\",\"description\":\"Buy one or buy a few and make every space where you sit more convenient. Light and easy to move around with removable tray top, handy for serving snacks.\",\"price\":400,\"stockQuantity\":10,\"categoryId\":1,\"colors\":[\"black\"]}",
+									"contentType": "application/json",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "/api/v1/product",
+							"path": [
+								"api",
+								"v1",
+								"product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update product",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f07b9ae-5834-4210-8777-e4565524e40a"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f07b9ae-987b-4350-b93a-dd272b7f3c70"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f0ac669-6dfd-4ae0-887e-1397e3a9a742"
+								},
+								{
+									"key": "productDto",
+									"value": "{\"name\":\"Tray Table\",\"discount\":0,\"measurements\":\"17 1/2x20 5/8 \\\"\",\"description\":\"This is a test bit alert\",\"price\":400,\"stockQuantity\":10,\"categoryId\":1,\"colors\":[\"black\",\"red\",\"\"]}",
+									"contentType": "application/json",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "/api/v1/product/prod001",
+							"path": [
+								"api",
+								"v1",
+								"product",
+								"prod001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/product/prod001",
+							"path": [
+								"api",
+								"v1",
+								"product",
+								"prod001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch product by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/product/prod001",
+							"path": [
+								"api",
+								"v1",
+								"product",
+								"prod001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/product?page=0&size=10&sort=createdAt,DESC",
+							"path": [
+								"api",
+								"v1",
+								"product"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sort",
+									"value": "createdAt,DESC"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customer",
+			"item": [
+				{
+					"name": "Update customer",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"xXJoeMamaXx\",\n  \"password\": \"SuperStrongPassword$123\",\n  \"email\": \"joe.mama@gmail.com\",\n  \"phoneNumber\": \"+502-98765432\",\n  \"firstName\": \"Joe\",\n  \"lastName\": \"Mama\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/customer/cust001",
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"cust001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch customer",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "/api/v1/customer/cust001",
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"cust001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete customer",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"apoque96\",\n    \"email\": \"dereckcabrerang@gmail.com\",\n    \"password\": \"SuperSecretPassword#123\",\n    \"firstName\": \"Dereck\",\n    \"lastName\": \"Cabrera\"\n}"
+						},
+						"url": {
+							"raw": "/api/v1/customer/cust001",
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"cust001"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payment",
+			"item": [
+				{
+					"name": "Fetch payment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/payment/1",
+							"path": [
+								"api",
+								"v1",
+								"payment",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete payment",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/payment/1",
+							"path": [
+								"api",
+								"v1",
+								"payment",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create payment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentId\": 1,\n  \"amount\": 100,\n  \"paymentDate\": \"2025-09-18T01:07:49.652Z\",\n  \"billName\": \"Bill for order 1\",\n  \"description\": \"Payment for order 1\",\n  \"methodId\": 1,\n  \"statusId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/payment",
+							"path": [
+								"api",
+								"v1",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update payment",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentId\": 1,\n  \"amount\": 100,\n  \"paymentDate\": \"2025-09-18T01:07:49.652Z\",\n  \"billName\": \"Bill for order 1\",\n  \"description\": \"Payment for order 1\",\n  \"methodId\": 1,\n  \"statusId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/payment/1",
+							"path": [
+								"api",
+								"v1",
+								"payment",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Order",
+			"item": [
+				{
+					"name": "Fetch order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/order/1",
+							"path": [
+								"api",
+								"v1",
+								"order",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete order",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/order/1",
+							"path": [
+								"api",
+								"v1",
+								"order",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": 1,\n  \"customer\": \"cust001\",\n  \"couponId\": 1,\n  \"subTotalAmount\": 100,\n  \"totalAmout\": 107.99\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/order",
+							"path": [
+								"api",
+								"v1",
+								"order"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update order",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": 1,\n  \"customer\": \"cust001\",\n  \"couponId\": 1,\n  \"subTotalAmount\": 100,\n  \"totalAmout\": 107.99\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/order/1",
+							"path": [
+								"api",
+								"v1",
+								"order",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"joe mama\",\n  \"email\": \"user@example.com\",\n  \"password\": \"SuperStrongPassword$123\",\n  \"firstName\": \"Joe\",\n  \"lastName\": \"Mama\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/auth/register",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Log in",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"joe mama\",\n  \"password\": \"SuperStrongPassword$123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/auth/login",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Category",
+			"item": [
+				{
+					"name": "Fetch all categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "/api/v1/category",
+							"path": [
+								"api",
+								"v1",
+								"category"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create category",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Electronics\",\n    \"invalid\": \"json\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/category",
+							"path": [
+								"api",
+								"v1",
+								"category"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "OrderProduct",
+			"item": [
+				{
+					"name": "Add product to cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImpvZSBtYW1hIiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDE4MzcxLCJleHAiOjE3NjExMDQ3NzF9.Li6f9vt0LaQatUzcEFJfa97ZblQ27E-Wf2PG50zMjKs",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"prod001\",\n  \"quantity\": 2,\n  \"color\": \"red\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/orderProduct",
+							"path": [
+								"api",
+								"v1",
+								"orderProduct"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update product quantity",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImpvZSBtYW1hIiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDE4MzcxLCJleHAiOjE3NjExMDQ3NzF9.Li6f9vt0LaQatUzcEFJfa97ZblQ27E-Wf2PG50zMjKs",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"prod001\",\n  \"quantity\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/orderProduct/quantity",
+							"path": [
+								"api",
+								"v1",
+								"orderProduct",
+								"quantity"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImpvZSBtYW1hIiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDE4MzcxLCJleHAiOjE3NjExMDQ3NzF9.Li6f9vt0LaQatUzcEFJfa97ZblQ27E-Wf2PG50zMjKs",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"prod001\",\n  \"quantity\": 62\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/orderProduct/prod001",
+							"path": [
+								"api",
+								"v1",
+								"orderProduct",
+								"prod001"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Review",
+			"item": [
+				{
+					"name": "Leave a review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImFwb3F1ZTk2IiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDk1NDU0LCJleHAiOjE3NjExODE4NTR9.hvWcrBH4oSwzWlIAM_C0PPEQr_MmENaPWN3VWmJTsnQ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"comment\": \"string\",\n  \"rating\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "/api/v1/review/prod001",
+							"path": [
+								"api",
+								"v1",
+								"review",
+								"prod001"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"pm.request.url.protocol=\"http\";",
+					"pm.request.url.host=\"localhost\";",
+					"pm.request.url.port=\"8000\";"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

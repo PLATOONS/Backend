@@ -29,6 +29,10 @@ import com.platoons.e_commerce.utils.ImageUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 public class ProductServiceImplTests {
@@ -53,6 +57,143 @@ public class ProductServiceImplTests {
                 productImageRepository,
                 categoryRepository,
                 extraInfoRepository);
+    }
+
+    @Test
+    void testFetchProducts_WithAllParameters() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, "Electronics", 100.0, 500.0))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, "Electronics", "100", "500");
+
+        assertNotNull(result);
+        assertEquals(mockPage, result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, "Electronics", 100.0, 500.0);
+    }
+
+    @Test
+    void testFetchProducts_WithNullMinPrice_ShouldUseDefaultZero() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, "Books", 0.0, 200.0))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, "Books", null, "200");
+
+        assertNotNull(result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, "Books", 0.0, 200.0);
+    }
+
+    @Test
+    void testFetchProducts_WithNullMaxPrice_ShouldUseDefault999999() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, "Clothing", 50.0, 999999.0))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, "Clothing", "50", null);
+
+        assertNotNull(result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, "Clothing", 50.0, 999999.0);
+    }
+
+    @Test
+    void testFetchProducts_WithBothPricesNull_ShouldUseDefaults() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, null, 0.0, 999999.0))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, null, null, null);
+
+        assertNotNull(result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, null, 0.0, 999999.0);
+    }
+
+    @Test
+    void testFetchProducts_WithMinGreaterThanMax_ShouldThrowBadRequestException() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> productService.fetchProducts(pageable, "Electronics", "500", "100"));
+
+        assertEquals("Min price is greater than max price", exception.getMessage());
+        verify(productRepository, never()).findAllSummaries(any(), any(), anyDouble(), anyDouble());
+    }
+
+    @Test
+    void testFetchProducts_WithInvalidMinPrice_ShouldThrowNumberFormatException() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThrows(NumberFormatException.class,
+                () -> productService.fetchProducts(pageable, "Electronics", "invalid", "100"));
+
+        verify(productRepository, never()).findAllSummaries(any(), any(), anyDouble(), anyDouble());
+    }
+
+    @Test
+    void testFetchProducts_WithInvalidMaxPrice_ShouldThrowNumberFormatException() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThrows(NumberFormatException.class,
+                () -> productService.fetchProducts(pageable, "Electronics", "50", "not-a-number"));
+
+        verify(productRepository, never()).findAllSummaries(any(), any(), anyDouble(), anyDouble());
+    }
+
+    @Test
+    void testFetchProducts_WithNullCategory() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, null, 0.0, 1000.0))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, null, "0", "1000");
+
+        assertNotNull(result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, null, 0.0, 1000.0);
+    }
+
+    @Test
+    void testFetchProducts_WithEqualMinAndMaxPrices() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, "Sports", 100.0, 100.0))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, "Sports", "100", "100");
+
+        assertNotNull(result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, "Sports", 100.0, 100.0);
+    }
+
+    @Test
+    void testFetchProducts_WithDecimalPrices() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+
+        when(productRepository.findAllSummaries(pageable, "Home", 19.99, 299.99))
+                .thenReturn(mockPage);
+
+        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+                pageable, "Home", "19.99", "299.99");
+
+        assertNotNull(result);
+        verify(productRepository, times(1)).findAllSummaries(pageable, "Home", 19.99, 299.99);
     }
 
     @Test

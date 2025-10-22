@@ -131,4 +131,24 @@ class GlobalExceptionHandlerTest {
         assertTrue(errorMessage.contains(property));
         assertTrue(errorMessage.contains(value));
     }
+
+    @Test
+    void handleNotBoughtException_ShouldReturnForbidden() {
+        // Arrange
+        String errorMessage = "User has not purchased this product";
+        NotBoughtException exception = new NotBoughtException(errorMessage);
+
+        // Act
+        ResponseEntity<ErrorResponseDto> response = globalExceptionHandler
+                .handleNotBoughtException(exception, webRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        
+        ErrorResponseDto responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(errorMessage, responseBody.getErrorMessage());
+        assertNotNull(responseBody.getErrorTime());
+    }
 }
