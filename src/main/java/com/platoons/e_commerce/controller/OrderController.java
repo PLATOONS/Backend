@@ -1,15 +1,22 @@
 package com.platoons.e_commerce.controller;
 
 import java.util.List;
+import java.net.URI;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.BadCredentialsException;
-import com.platoons.e_commerce.dto.OrderResponseDto;
-import com.platoons.e_commerce.dto.CreateOrderRequestDto;
-import com.platoons.e_commerce.dto.ErrorResponseDto;
-import com.platoons.e_commerce.dto.GenericResponseDto;
-import com.platoons.e_commerce.dto.UpdateOrderDto;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import com.platoons.e_commerce.dto.*;
 import com.platoons.e_commerce.service.IOrderService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,15 +24,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
 
 @RestController
 @Slf4j
@@ -101,7 +99,7 @@ public class OrderController {
             @Parameter(description = "Updated order details", required = true)
             @Valid @RequestBody UpdateOrderDto orderDto,
             @Parameter(description = "ID of the order to be updated", required = true)
-            @PathVariable("orderId") String orderId) {
+            @PathVariable String orderId) {
         log.info("Updating order with id {}", orderId);
 
         String savedOrderId = orderService.updateOrder(orderDto, orderId);
