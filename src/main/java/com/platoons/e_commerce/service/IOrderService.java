@@ -8,7 +8,7 @@ import com.platoons.e_commerce.dto.UpdateOrderDto;
 public interface IOrderService {
     String createOrder(CreateOrderRequestDto orderDto);
 
-    OrderDto fetchOrder(String orderId);
+    OrderResponseDto fetchOrder(String orderId);
 
     void deleteOrder(String orderId);
 
