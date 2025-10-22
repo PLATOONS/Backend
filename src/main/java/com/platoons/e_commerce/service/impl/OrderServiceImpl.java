@@ -1,7 +1,10 @@
 package com.platoons.e_commerce.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.platoons.e_commerce.dto.CreateOrderRequestDto;
-import com.platoons.e_commerce.dto.OrderDto;
+import com.platoons.e_commerce.dto.OrderResponseDto;
 import com.platoons.e_commerce.dto.UpdateOrderDto;
 import com.platoons.e_commerce.entity.Order;
 import com.platoons.e_commerce.exceptions.EntityNotFoundException;
@@ -27,10 +30,10 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public OrderDto fetchOrder(String orderId) {
+    public OrderResponseDto fetchOrder(String orderId) {
         var savedOrder = orderRepository.findById(Long.parseLong(orderId))
                 .orElseThrow(() -> new EntityNotFoundException("order", "orderId", orderId));
-        return OrderMapper.mapOrderToOrderDto(savedOrder, new OrderDto());
+        return OrderMapper.mapOrderToOrderResponseDto(savedOrder);
     }
 
     @Override
@@ -55,11 +58,11 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public List<OrderDto> getOrdersByUser(String username) {
+    public List<OrderResponseDto> getOrdersByUser(String username) {
         var orders = orderRepository.findAllByCustomerUsernameAndDeletedAtIsNull(username);
 
         return orders.stream()
-                .map(order -> OrderMapper.mapOrderToOrderDto(order, new OrderDto()))
+                .map(OrderMapper::mapOrderToOrderResponseDto)
                 .collect(Collectors.toList());
     }
 }
