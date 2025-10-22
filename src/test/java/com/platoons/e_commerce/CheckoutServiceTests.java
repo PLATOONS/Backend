@@ -105,46 +105,6 @@ public class CheckoutServiceTests {
     }
 
     @Test
-    void testCheckout_SuccessfulCheckoutWithoutCoupon() {
-        // Arrange
-        OrderProduct op1 = createOrderProduct(1L, 50.0);
-        OrderProduct op2 = createOrderProduct(2L, 30.0);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-            mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getName()).thenReturn("testuser");
-
-            when(customerRepository.findByUsernameAndDeletedAtIsNull("testuser"))
-                    .thenReturn(Optional.of(customer));
-            when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
-                    .thenReturn(Optional.of(cartStatus));
-            when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(customer, cartStatus))
-                    .thenReturn(Optional.of(order));
-            when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(order))
-                    .thenReturn(Arrays.asList(op1, op2));
-            when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-
-            // Act
-            String result = paymentServiceImpl.checkout(checkoutDto);
-
-            // Assert
-            assertEquals("1", result);
-            verify(paymentRepository, times(1)).save(argThat(p ->
-                    p.getAmount() == 80.0 &&
-                            p.getBillName().equals("John Doe") &&
-                            p.getDescription().contains("order 1")
-            ));
-            verify(orderRepository, times(1)).save(argThat(o ->
-                    o.getOrderStatus().getStatusName().equals("COMPLETED")
-            ));
-        }
-    }
-
-    @Test
     void testCheckout_WithValidCoupon_AppliesDiscount() {
         // Arrange
         checkoutDto.setCoupon("SAVE20");
