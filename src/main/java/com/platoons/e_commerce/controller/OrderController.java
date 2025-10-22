@@ -112,4 +112,21 @@ public class OrderController {
 
         return ResponseEntity.created(uri).body(new GenericResponseDto("Order Updated"));
     }
+
+    @Operation(summary = "Get all orders for the logged in user", description = "Returns all orders of the currently authenticated user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List of user's orders",
+                    content = @Content(schema = @Schema(implementation = OrderDto.class))),
+        @ApiResponse(responseCode = "401", description = "User not logged in")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<OrderDto>> getUserOrders(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadCredentialsException("User not logged in");
+        }
+
+        String username = authentication.getName();
+        List<OrderDto> orders = orderService.getOrdersByUser(username);
+        return ResponseEntity.ok(orders);
+    }
 }

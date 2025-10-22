@@ -12,4 +12,6 @@ public interface IOrderService {
     void deleteOrder(String orderId);
 
     String updateOrder(UpdateOrderDto orderDto, String orderId);
+
+    List<OrderResponseDto> getOrdersByUser(String username);
 }

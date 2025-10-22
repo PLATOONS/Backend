@@ -53,4 +53,13 @@ public class OrderServiceImpl implements IOrderService {
         order.setDeletedAt(LocalDateTime.now());
         orderRepository.save(order);
     }
+
+    @Override
+    public List<OrderDto> getOrdersByUser(String username) {
+        var orders = orderRepository.findAllByCustomerUsernameAndDeletedAtIsNull(username);
+
+        return orders.stream()
+                .map(order -> OrderMapper.mapOrderToOrderDto(order, new OrderDto()))
+                .collect(Collectors.toList());
+    }
 }
