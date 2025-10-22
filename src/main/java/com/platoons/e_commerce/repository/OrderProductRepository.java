@@ -21,4 +21,6 @@ public interface OrderProductRepository extends CrudRepository<OrderProduct, Lon
 
     // The name is kinda long... but it works
     Optional<OrderProduct> findFirstByProductProductIdAndOrderCustomerUsernameAndOrderOrderStatusStatusNameAndDeletedAtIsNull(String productId, String username, String statusName);
+
+    int countByOrderAndDeletedAtIsNull(Order order);
 }

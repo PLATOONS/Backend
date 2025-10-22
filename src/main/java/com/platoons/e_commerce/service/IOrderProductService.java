@@ -14,4 +14,6 @@ public interface IOrderProductService {
     void updateQuantity(String productId, int quantity, String username);
 
     List<CartProductsDto> fetchCartProducts(String username);
+
+    int countUniqueProductsInCart(String userId);
 }

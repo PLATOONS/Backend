@@ -215,4 +215,23 @@ public class OrderProductServiceImpl implements IOrderProductService {
 
         return Math.max(0.0, finalPrice);
     }
+
+    @Override
+    @Transactional
+    public int countUniqueProductsInCart(String username) {
+        Customer customer = customerRepository.findByUsernameAndDeletedAtIsNull(username)
+                .orElseThrow(() -> new EntityNotFoundException("Customer", "username", username));
+
+        OrderStatus cartStatus = orderStatusRepository.findByStatusNameIgnoreCase("CART")
+                .orElseThrow(() -> new EntityNotFoundException("OrderStatus", "statusName", "CART"));
+
+        Order order = orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(customer, cartStatus)
+                .orElse(null);
+
+        if (order == null) {
+            return 0;
+        }
+
+        return orderProductRepository.countByOrderAndDeletedAtIsNull(order);
+    }
 }
