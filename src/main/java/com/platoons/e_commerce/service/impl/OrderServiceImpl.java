@@ -61,7 +61,7 @@ public class OrderServiceImpl implements IOrderService {
         var orders = orderRepository.findAllByCustomerUsernameAndDeletedAtIsNull(username);
 
         return orders.stream()
-                .map(order -> OrderMapper.mapOrderToOrderDto(order, new OrderDto()))
+                .map(order -> OrderMapper.mapOrderToOrderResponseDto(order, new OrderResponseDto()))
                 .collect(Collectors.toList());
     }
 }
