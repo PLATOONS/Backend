@@ -16,4 +16,10 @@ public class OrderResponseDto {
     private double totalAmount;
     private LocalDateTime createdAt;
     private List<OrderProductDto> products;
+    private String customerId;
+    private String customerUsername;
+    private String customerEmail;
+    private Long couponId;
+    private String couponCode;
+    private Double discountAmount;
 }
