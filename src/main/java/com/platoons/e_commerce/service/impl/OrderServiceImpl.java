@@ -2,19 +2,17 @@ package com.platoons.e_commerce.service.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
-import com.platoons.e_commerce.dto.CreateOrderRequestDto;
-import com.platoons.e_commerce.dto.OrderResponseDto;
-import com.platoons.e_commerce.dto.UpdateOrderDto;
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+
+import com.platoons.e_commerce.dto.*;
 import com.platoons.e_commerce.entity.Order;
 import com.platoons.e_commerce.exceptions.EntityNotFoundException;
 import com.platoons.e_commerce.mapper.OrderMapper;
 import com.platoons.e_commerce.repository.OrderRepository;
 import com.platoons.e_commerce.service.IOrderService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +38,6 @@ public class OrderServiceImpl implements IOrderService {
     public String updateOrder(UpdateOrderDto orderDto, String orderId) {
         Order order = orderRepository.findById(Long.parseLong(orderId))
                 .orElseThrow(() -> new EntityNotFoundException("order", "orderId", orderId));
-
         OrderMapper.mapUpdateOrderDtoToOrder(orderDto, order);
         orderRepository.save(order);
         return order.getOrderId().toString();
@@ -60,9 +57,8 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     public List<OrderResponseDto> getOrdersByUser(String username) {
         var orders = orderRepository.findAllByCustomerUsernameAndDeletedAtIsNull(username);
-
         return orders.stream()
-                .map(OrderMapper::mapOrderToOrderResponseDto)
-                .collect(Collectors.toList());
+                     .map(OrderMapper::mapOrderToOrderResponseDto)
+                     .collect(Collectors.toList());
     }
 }
