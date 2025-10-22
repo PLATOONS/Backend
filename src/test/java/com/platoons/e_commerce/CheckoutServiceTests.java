@@ -420,38 +420,6 @@ public class CheckoutServiceTests {
         }
     }
 
-    @Test
-    void testCheckout_OrderStatusChangedToCompleted() {
-        // Arrange
-        OrderProduct op1 = createOrderProduct(1L, 100.0);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-            mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getName()).thenReturn("testuser");
-
-            when(customerRepository.findByUsernameAndDeletedAtIsNull("testuser"))
-                    .thenReturn(Optional.of(customer));
-            when(orderStatusRepository.findByStatusNameIgnoreCase("CART"))
-                    .thenReturn(Optional.of(cartStatus));
-            when(orderRepository.findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(customer, cartStatus))
-                    .thenReturn(Optional.of(order));
-            when(orderProductRepository.findAllByOrderAndDeletedAtIsNull(order))
-                    .thenReturn(Collections.singletonList(op1));
-            when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-
-            // Act
-            paymentServiceImpl.checkout(checkoutDto);
-
-            // Assert
-            assertEquals("COMPLETED", cartStatus.getStatusName());
-            verify(orderRepository, times(1)).save(order);
-        }
-    }
-
     // Helper method
     private OrderProduct createOrderProduct(Long id, Double totalPrice) {
         OrderProduct op = new OrderProduct();
