@@ -1,5 +1,6 @@
 package com.platoons.e_commerce.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
@@ -15,4 +16,6 @@ public interface OrderRepository extends CrudRepository<Order, Long> {
     Optional<Order> findByOrderIdAndDeletedAtIsNull(Long orderId);
 
     Optional<Order> findFirstByCustomerAndOrderStatusAndDeletedAtIsNull(Customer customer, OrderStatus orderStatus);
+
+    List<Order> findAllByCustomerUsernameAndDeletedAtIsNull(String username);
 }

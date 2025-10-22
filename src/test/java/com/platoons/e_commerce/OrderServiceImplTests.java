@@ -1,16 +1,9 @@
 package com.platoons.e_commerce;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
@@ -19,17 +12,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import com.platoons.e_commerce.dto.CreateOrderRequestDto;
-import com.platoons.e_commerce.dto.OrderDto;
+import com.platoons.e_commerce.dto.OrderResponseDto;
 import com.platoons.e_commerce.dto.UpdateOrderDto;
 import com.platoons.e_commerce.entity.Order;
 import com.platoons.e_commerce.exceptions.EntityNotFoundException;
 import com.platoons.e_commerce.mapper.OrderMapper;
 import com.platoons.e_commerce.repository.OrderRepository;
 import com.platoons.e_commerce.service.impl.OrderServiceImpl;
+
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 public class OrderServiceImplTests {
+
     private OrderRepository orderRepository;
     private OrderServiceImpl orderService;
 
@@ -62,18 +57,18 @@ public class OrderServiceImplTests {
     void testFetchOrder_Found() {
         Order order = new Order();
         order.setOrderId(1L);
-        OrderDto orderDto = new OrderDto();
+        OrderResponseDto responseDto = new OrderResponseDto();
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         try (MockedStatic<OrderMapper> mockedMapper = mockStatic(OrderMapper.class)) {
-            mockedMapper.when(() -> OrderMapper.mapOrderToOrderDto(eq(order), any(OrderDto.class)))
-                    .thenReturn(orderDto);
+            mockedMapper.when(() -> OrderMapper.mapOrderToOrderResponseDto(order))
+                    .thenReturn(responseDto);
 
-            OrderDto result = orderService.fetchOrder("1");
+            OrderResponseDto result = orderService.fetchOrder("1");
 
             assertNotNull(result);
-            assertEquals(orderDto, result);
+            assertEquals(responseDto, result);
             verify(orderRepository, times(1)).findById(1L);
         }
     }
@@ -93,12 +88,11 @@ public class OrderServiceImplTests {
         order.setOrderId(1L);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
 
         try (MockedStatic<OrderMapper> mockedMapper = mockStatic(OrderMapper.class)) {
             mockedMapper.when(() -> OrderMapper.mapUpdateOrderDtoToOrder(eq(updateDto), any(Order.class)))
-                    .then(invocation -> null);
-
-            when(orderRepository.save(order)).thenReturn(order);
+                    .thenReturn(order);
 
             String result = orderService.updateOrder(updateDto, "1");
 

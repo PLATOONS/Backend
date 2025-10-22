@@ -1,13 +1,7 @@
 package com.platoons.e_commerce.mapper;
 
-import com.platoons.e_commerce.dto.CreateOrderRequestDto;
-import com.platoons.e_commerce.dto.OrderDto;
-import com.platoons.e_commerce.dto.UpdateOrderDto;
-import com.platoons.e_commerce.dto.CustomerDto;
-import com.platoons.e_commerce.dto.CouponDto;
-import com.platoons.e_commerce.entity.Customer;
-import com.platoons.e_commerce.entity.Coupon;
-import com.platoons.e_commerce.entity.Order;
+import com.platoons.e_commerce.dto.*;
+import com.platoons.e_commerce.entity.*;
 
 public class OrderMapper {
 
@@ -16,7 +10,7 @@ public class OrderMapper {
         order.setTotalAmount(orderDto.getTotalAmout());
 
         Customer customer = new Customer();
-        customer.setCustomerId(String.valueOf(orderDto.getCustomer()));
+        customer.setCustomerId(orderDto.getCustomer());
         order.setCustomer(customer);
 
         if (orderDto.getCouponId() != null) {
@@ -30,18 +24,20 @@ public class OrderMapper {
 
     public static OrderDto mapOrderToOrderDto(Order order, OrderDto orderDto) {
         orderDto.setOrderId(order.getOrderId());
-        orderDto.setSubTotalAmout(order.getSubtotalAmount()); // usar el nombre exacto del DTO
+        orderDto.setSubTotalAmout(order.getSubtotalAmount());
         orderDto.setTotalAmount(order.getTotalAmount());
 
-        CustomerDto customerDto = new CustomerDto();
-        customerDto.setCustomerId(order.getCustomer().getCustomerId());
-        customerDto.setRegistrationDate(order.getCustomer().getRegistrationDate());
-        customerDto.setUsername(order.getCustomer().getUsername());
-        customerDto.setEmail(order.getCustomer().getEmail());
-        customerDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
-        customerDto.setFirstName(order.getCustomer().getFirstName());
-        customerDto.setLastName(order.getCustomer().getLastName());
-        orderDto.setCustomer(customerDto);
+        if (order.getCustomer() != null) {
+            CustomerDto customerDto = new CustomerDto();
+            customerDto.setCustomerId(order.getCustomer().getCustomerId());
+            customerDto.setUsername(order.getCustomer().getUsername());
+            customerDto.setEmail(order.getCustomer().getEmail());
+            customerDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
+            customerDto.setFirstName(order.getCustomer().getFirstName());
+            customerDto.setLastName(order.getCustomer().getLastName());
+            customerDto.setRegistrationDate(order.getCustomer().getRegistrationDate());
+            orderDto.setCustomer(customerDto);
+        }
 
         if (order.getCoupon() != null) {
             CouponDto couponDto = new CouponDto();
@@ -59,7 +55,7 @@ public class OrderMapper {
         order.setTotalAmount(orderDto.getTotalAmout());
 
         Customer customer = new Customer();
-        customer.setCustomerId(String.valueOf(orderDto.getCustomer()));
+        customer.setCustomerId(orderDto.getCustomer());
         order.setCustomer(customer);
 
         if (orderDto.getCouponId() != null) {
@@ -71,5 +67,30 @@ public class OrderMapper {
         }
 
         return order;
+    }
+
+    public static OrderResponseDto mapOrderToOrderResponseDto(Order order) {
+        OrderResponseDto dto = new OrderResponseDto();
+        dto.setOrderId(order.getOrderId());
+        dto.setSubtotalAmount(order.getSubtotalAmount());
+        dto.setTotalAmount(order.getTotalAmount());
+
+        if (order.getOrderStatus() != null) {
+            dto.setStatus(order.getOrderStatus().getStatusName()); // corregido
+        }
+
+        if (order.getCustomer() != null) {
+            dto.setCustomerId(order.getCustomer().getCustomerId());
+            dto.setCustomerUsername(order.getCustomer().getUsername());
+            dto.setCustomerEmail(order.getCustomer().getEmail());
+        }
+
+        if (order.getCoupon() != null) {
+            dto.setCouponId(order.getCoupon().getCouponId());
+            dto.setCouponCode(order.getCoupon().getCouponCode());
+            dto.setDiscountAmount(order.getCoupon().getDiscountAmount());
+        }
+
+        return dto;
     }
 }
