@@ -3,7 +3,7 @@ package com.platoons.e_commerce;
 import com.platoons.e_commerce.controller.OrderController;
 import com.platoons.e_commerce.dto.CreateOrderRequestDto;
 import com.platoons.e_commerce.dto.GenericResponseDto;
-import com.platoons.e_commerce.dto.OrderDto;
+import com.platoons.e_commerce.dto.OrderResponseDto;
 import com.platoons.e_commerce.dto.UpdateOrderDto;
 import com.platoons.e_commerce.service.IOrderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import java.net.URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class OrderControllerTest{
+public class OrderControllerTest {
 
     private IOrderService orderService;
     private OrderController orderController;
@@ -33,13 +33,13 @@ public class OrderControllerTest{
 
     @Test
     void fetchOrder_returnsOrderDetails() {
-        OrderDto dto = new OrderDto();
+        OrderResponseDto dto = new OrderResponseDto();
         dto.setOrderId(orderId);
         dto.setTotalAmount(100.0);
 
         when(orderService.fetchOrder(orderId.toString())).thenReturn(dto);
 
-        ResponseEntity<OrderDto> response = orderController.fetchOrder(orderId.toString());
+        ResponseEntity<OrderResponseDto> response = orderController.fetchOrder(orderId.toString());
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(100.0, response.getBody().getTotalAmount());
@@ -69,7 +69,7 @@ public class OrderControllerTest{
             ResponseEntity<GenericResponseDto> response = orderController.createOrder(dto);
 
             assertEquals(201, response.getStatusCodeValue());
-            assertEquals("Successfully Order", response.getBody().getMessage());
+            assertEquals("Successfully created order", response.getBody().getMessage());
             verify(orderService, times(1)).createOrder(dto);
         }
     }
@@ -79,6 +79,8 @@ public class OrderControllerTest{
         UpdateOrderDto dto = new UpdateOrderDto();
         dto.setSubTotalAmount(120.0);
         dto.setTotalAmout(130.0);
+        dto.setCustomer("customer-1");
+        dto.setOrderId(orderId);
 
         when(orderService.updateOrder(dto, orderId.toString())).thenReturn(orderId.toString());
 
@@ -95,7 +97,7 @@ public class OrderControllerTest{
             ResponseEntity<GenericResponseDto> response = orderController.updateOrder(dto, orderId.toString());
 
             assertEquals(201, response.getStatusCodeValue());
-            assertEquals("Order Updated", response.getBody().getMessage());
+            assertEquals("Order updated successfully", response.getBody().getMessage());
             verify(orderService, times(1)).updateOrder(dto, orderId.toString());
         }
     }
@@ -104,7 +106,7 @@ public class OrderControllerTest{
     void deleteOrder_returnsNoContent() {
         doNothing().when(orderService).deleteOrder(orderId.toString());
 
-        ResponseEntity<Object> response = orderController.deleteOrder(orderId.toString());
+        ResponseEntity<Void> response = orderController.deleteOrder(orderId.toString());
 
         assertEquals(204, response.getStatusCodeValue());
         verify(orderService, times(1)).deleteOrder(orderId.toString());
