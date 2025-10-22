@@ -3,6 +3,7 @@ package com.platoons.e_commerce.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+import com.platoons.e_commerce.dto.CartProductsDto;
 import org.springframework.stereotype.Service;
 
 import com.platoons.e_commerce.dto.AddToCartRequestDto;
@@ -193,6 +194,14 @@ public class OrderProductServiceImpl implements IOrderProductService {
         order.setSubtotalAmount(newSubtotal);
         order.setTotalAmount(newSubtotal);
         orderRepository.save(order);
+    }
+
+    @Override
+    public List<CartProductsDto> fetchCartProducts(String username) {
+        customerRepository.findByUsernameAndDeletedAtIsNull(username)
+            .orElseThrow(() -> new EntityNotFoundException("Customer", "username", username));
+
+        return productRepository.fetchCartProducts(username);
     }
 
     private double resolveUnitPrice(Product p) {

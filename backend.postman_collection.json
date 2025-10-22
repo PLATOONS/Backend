@@ -530,7 +530,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImpvZSBtYW1hIiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDE4MzcxLCJleHAiOjE3NjExMDQ3NzF9.Li6f9vt0LaQatUzcEFJfa97ZblQ27E-Wf2PG50zMjKs",
+								"value": "Bearer ",
 								"type": "text"
 							}
 						],
@@ -561,7 +561,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImpvZSBtYW1hIiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDE4MzcxLCJleHAiOjE3NjExMDQ3NzF9.Li6f9vt0LaQatUzcEFJfa97ZblQ27E-Wf2PG50zMjKs",
+								"value": "Bearer ",
 								"type": "text"
 							}
 						],
@@ -593,7 +593,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImpvZSBtYW1hIiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDE4MzcxLCJleHAiOjE3NjExMDQ3NzF9.Li6f9vt0LaQatUzcEFJfa97ZblQ27E-Wf2PG50zMjKs",
+								"value": "Bearer ",
 								"type": "text"
 							}
 						],
@@ -617,6 +617,28 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Fetch cart products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "/api/v1/orderProduct",
+							"path": [
+								"api",
+								"v1",
+								"orderProduct"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -630,7 +652,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJKc25tQ0ZqYU4iLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6ImFwb3F1ZTk2IiwiYXV0aG9yaXRpZXMiOiJST0xFX0NVU1RPTUVSIiwiaWF0IjoxNzYxMDk1NDU0LCJleHAiOjE3NjExODE4NTR9.hvWcrBH4oSwzWlIAM_C0PPEQr_MmENaPWN3VWmJTsnQ",
+								"value": "Bearer ",
 								"type": "text"
 							}
 						],

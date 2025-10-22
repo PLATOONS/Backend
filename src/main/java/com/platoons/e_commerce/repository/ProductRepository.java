@@ -1,8 +1,10 @@
 package com.platoons.e_commerce.repository;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
+import com.platoons.e_commerce.dto.CartProductsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -79,4 +81,23 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             """
     )
     boolean userBoughtProduct(String username, String productId); // Might need to change this for the status name
+
+    @Query(
+            """
+                select new com.platoons.e_commerce.dto.CartProductsDto(p.productId,
+                       p.name as productName,
+                       (p.price - p.discountAmount) as price,
+                       (select MIN(i.imageName) from ProductImage i where i.product = p and i.deletedAt is null and i.color = op.color) as imageUrl,
+                       op.color as color,
+                       op.quantity as quantity)
+                from Product p
+                left join p.orderProducts op
+                left join op.order o
+                left join o.customer c
+                left join o.orderStatus s
+                where c.username = :username
+                and s.statusName = 'CART'
+            """
+    )
+    List<CartProductsDto> fetchCartProducts(String username);
 }
