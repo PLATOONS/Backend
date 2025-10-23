@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ReviewRepository extends CrudRepository<Review, String> {
+public interface ReviewRepository extends CrudRepository<Review, Long> {
     Optional<List<Review>> findByOrderProductProductProductId(String productId);
 }
