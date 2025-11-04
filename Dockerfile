@@ -81,12 +81,24 @@ RUN adduser \
     appuser
 USER appuser
 
-# Copy the executable from the "package" stage.
-COPY --from=extract build/target/extracted/dependencies/ ./
-COPY --from=extract build/target/extracted/spring-boot-loader/ ./
-COPY --from=extract build/target/extracted/snapshot-dependencies/ ./
-COPY --from=extract build/target/extracted/application/ ./
+# Create app directory
+WORKDIR /app
+
+# Copy the application layers
+COPY --from=extract /build/target/extracted/dependencies/ ./
+COPY --from=extract /build/target/extracted/spring-boot-loader/ ./
+COPY --from=extract /build/target/extracted/snapshot-dependencies/ ./
+COPY --from=extract /build/target/extracted/application/ ./
+
+# Copy the Datadog Java agent
+COPY dd-java-agent.jar ./
 
 EXPOSE 8080
 
-ENTRYPOINT [ "java", "org.springframework.boot.loader.launch.JarLauncher" ]
+ENTRYPOINT ["java", \
+    "-javaagent:dd-java-agent.jar", \
+    "-Ddd.logs.injection=true", \
+    "-Ddd.git.repository_url=github.com/platoons/backend", \
+    "-Ddd.service=backend", \
+    "-Ddd.env=dev", \
+    "org.springframework.boot.loader.launch.JarLauncher"]
