@@ -38,7 +38,6 @@ jobs:
 
       - name: Build Docker image (Java Spring Boot)
         run: |
-          # Usando Maven Wrapper
           docker build -t ${IMAGE_URI}:${IMAGE_TAG} -t ${IMAGE_URI}:latest .
 
       - name: Push image to ECR
@@ -61,19 +60,27 @@ jobs:
             --task-definition "$TD_ARN" \
             --query 'taskDefinition' > current-td.json
 
-      - name: Prepare new Task Definition with new image
+      - name: Prepare and register new Task Definition
+        id: reg_td
         run: |
           jq --arg IMG "${IMAGE_URI}:${IMAGE_TAG}" --arg NAME "${CONTAINER_NAME}" '
             .containerDefinitions = (.containerDefinitions | map(
               if .name == $NAME then .image = $IMG | . else . end
             ))
-            | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities,
-                  .registeredAt, .registeredBy)' current-td.json > new-td.json
+            | del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy,
+              .deregisteredAt
+            )
+          ' current-td.json > new-td.json
+
           cat new-td.json
 
-      - name: Register new Task Definition
-        id: reg_td
-        run: |
           NEW_TD_ARN=$(aws ecs register-task-definition \
             --cli-input-json file://new-td.json \
             --query 'taskDefinition.taskDefinitionArn' --output text)
@@ -104,13 +111,32 @@ jobs:
           aws ecs wait services-stable \
             --cluster "${CLUSTER_NAME}" \
             --services "${SERVICE_NAME}"
-      - name: Run DB migrations task
+
+      - name: Run DB migrations task (Java Spring Boot)
         run: |
+          # Cambia subnet y security group por los correctos
+          SUBNETS="subnet-xxxxxx"
+          SG="sg-xxxxxx"
+
           TASK_ARN=$(aws ecs run-task \
             --cluster "${CLUSTER_NAME}" \
             --launch-type FARGATE \
             --task-definition "$NEW_TD_ARN" \
             --count 1 \
-            --network-configuration "awsvpcConfiguration={subnets=[subnet-xxx],securityGroups=[sg-xxx],assignPublicIp=ENABLED}" \
+            --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=ENABLED}" \
             --overrides '{"containerOverrides":[{"name":"BackendContainer","command":["java","-jar","/app/app.jar","--spring.profiles.active=prod","db:migrate"]}]}' \
             --query 'tasks[0].taskArn' --output text)
+
+          echo "TASK_ARN=$TASK_ARN"
+          echo "Waiting for migration task to complete..."
+          aws ecs wait tasks-stopped --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN"
+
+          EXIT_CODE=$(aws ecs describe-tasks --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN" \
+            --query "tasks[0].containers[?name=='${CONTAINER_NAME}'].exitCode" --output text)
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Migration task failed!"
+            exit 1
+          fi
+
+          echo "Database migrations completed successfully."
