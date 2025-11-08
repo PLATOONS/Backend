@@ -1,0 +1,199 @@
+name: Backend | ECS Rolling Deploy + Knex migrations
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY: ${{ secrets.BE_ECR_REPOSITORY }}   # ej: ecommerce-backend
+  CLUSTER_NAME: ${{ secrets.BE_CLUSTER_NAME }}       # ej: EcommerceCluster
+  SERVICE_NAME: ${{ secrets.BE_SERVICE_NAME }}       # ej: InfraEcommerceStack-BackendServiceXXXX
+  CONTAINER_NAME: BackendContainer
+  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.BE_ECR_REPOSITORY }}
+  DEFAULT_MIGRATION_COMMAND: 'npx knex migrate:latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image (Backend)
+        run: |
+          docker build -t ${IMAGE_URI}:${IMAGE_TAG} -t ${IMAGE_URI}:latest .
+
+      - name: Push image to ECR
+        run: |
+          docker push ${IMAGE_URI}:${IMAGE_TAG}
+          docker push ${IMAGE_URI}:latest
+
+      - name: Get current Task Definition ARN
+        id: get_td
+        run: |
+          TD_ARN=$(aws ecs describe-services \
+            --cluster "${CLUSTER_NAME}" \
+            --services "${SERVICE_NAME}" \
+            --query 'services[0].taskDefinition' --output text)
+          echo "TD_ARN=$TD_ARN" >> $GITHUB_ENV
+
+      - name: Download current Task Definition JSON
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "$TD_ARN" \
+            --query 'taskDefinition' > current-td.json
+
+      - name: Prepare new Task Definition with new image
+        run: |
+          jq --arg IMG "${IMAGE_URI}:${IMAGE_TAG}" --arg NAME "${CONTAINER_NAME}" '
+            .containerDefinitions = (.containerDefinitions | map(
+              if .name == $NAME then .image = $IMG | . else . end
+            ))
+            | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities,
+                  .registeredAt, .registeredBy)' current-td.json > new-td.json
+          cat new-td.json
+
+      - name: Register new Task Definition
+        id: reg_td
+        run: |
+          NEW_TD_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-td.json \
+            --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TD_ARN=$NEW_TD_ARN" >> $GITHUB_ENV
+
+      - name: Ensure desired count >= 1 (first deploy safety)
+        run: |
+          DESIRED=$(aws ecs describe-services \
+            --cluster "${CLUSTER_NAME}" --services "${SERVICE_NAME}" \
+            --query 'services[0].desiredCount' --output text)
+          if [ "$DESIRED" = "0" ] || [ "$DESIRED" = "None" ]; then
+            aws ecs update-service \
+              --cluster "${CLUSTER_NAME}" \
+              --service "${SERVICE_NAME}" \
+              --desired-count 1 >/dev/null
+          fi
+
+      - name: Update ECS service (rolling deploy)
+        run: |
+          aws ecs update-service \
+            --cluster "${CLUSTER_NAME}" \
+            --service "${SERVICE_NAME}" \
+            --task-definition "$NEW_TD_ARN" \
+            --force-new-deployment
+
+      - name: Wait for service stable
+        run: |
+          aws ecs wait services-stable \
+            --cluster "${CLUSTER_NAME}" \
+            --services "${SERVICE_NAME}"
+
+      - name: Get Backend Security Group from CloudFormation outputs
+        run: |
+          STACK_NAME="InfraEcommerceStack"
+          SG_ID=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='BackendSecurityGroupId'].OutputValue" \
+            --output text)
+          echo "Backend SG ID: $SG_ID"
+          echo "SG_ID=$SG_ID" >> $GITHUB_ENV
+
+
+      # ----- MIGRACIONES KNEX POST-DEPLOY -----
+      - name: Run DB migrations task (Knex)
+        env:
+          MIGRATION_COMMAND: ${{ secrets.MIGRATION_COMMAND || env.DEFAULT_MIGRATION_COMMAND }}
+        run: |
+          set -e
+
+          echo "=== Buscando subnets públicas ==="
+          SUBNETS=$(aws ec2 describe-subnets \
+            --filters "Name=tag:aws-cdk:subnet-type,Values=Public" \
+            --query 'Subnets[].SubnetId' --output text)
+
+          if [ -z "$SUBNETS" ]; then
+            echo "No se encontraron subnets públicas"
+            exit 1
+          fi
+          echo "Subnets encontradas: $SUBNETS"
+
+          echo "=== Buscando Security Group del backend ==="
+          SG_ID=$(aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=*BackendServiceSecurityGroup*" \
+            --query 'SecurityGroups[0].GroupId' --output text)
+
+          # Fallback si el filtro por nombre falla
+          if [ -z "$SG_ID" ] || [ "$SG_ID" == "None" ]; then
+            echo "No se encontró SG por nombre, intentando obtenerlo del servicio ECS..."
+            SG_ID=$(aws ecs describe-services \
+              --cluster "${CLUSTER_NAME}" \
+              --services "${SERVICE_NAME}" \
+              --query 'services[0].networkConfiguration.awsvpcConfiguration.securityGroups[0]' \
+              --output text)
+          fi
+
+          if [ -z "$SG_ID" ] || [ "$SG_ID" == "None" ]; then
+            echo "No se encontró ningún SG válido."
+            exit 1
+          fi
+          echo "Security Group encontrado: $SG_ID"
+
+          echo "=== Preparando overrides para ejecutar Knex migrations ==="
+          cat > overrides.json <<'JSON'
+          {
+            "containerOverrides": [
+              { "name": "BackendContainer", "command": [] }
+            ]
+          }
+          JSON
+
+          CMD_ARRAY=$(jq -Rn --arg cmd "${MIGRATION_COMMAND}" '$cmd | split(" ")')
+          jq --arg name "${CONTAINER_NAME}" --argjson cmd "$CMD_ARRAY" '
+            .containerOverrides = [ { "name": $name, "command": $cmd } ]' \
+            overrides.json > overrides.final.json
+
+          echo "=== Ejecutando task one-off para migraciones ==="
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${CLUSTER_NAME}" \
+            --launch-type FARGATE \
+            --task-definition "$NEW_TD_ARN" \
+            --count 1 \
+            --network-configuration "awsvpcConfiguration={subnets=[$(echo $SUBNETS | sed 's/ /,/g')],securityGroups=[$SG_ID],assignPublicIp=ENABLED}" \
+            --overrides file://overrides.final.json \
+            --query 'tasks[0].taskArn' --output text)
+
+          echo "TASK_ARN=$TASK_ARN"
+          echo "Esperando que la tarea finalice..."
+          aws ecs wait tasks-stopped --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN"
+
+          EXIT_CODE=$(aws ecs describe-tasks --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN" \
+            --query "tasks[0].containers[?name=='${CONTAINER_NAME}'].exitCode" --output text)
+          echo "Migration exit code: $EXIT_CODE"
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Knex migrations failed."
+            LOG_GROUP=$(aws ecs describe-tasks --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN" \
+              --query "tasks[0].containers[?name=='${CONTAINER_NAME}'].logConfiguration.options.\"awslogs-group\"" --output text)
+            echo "Mostrando últimos logs de migración..."
+            aws logs tail "$LOG_GROUP" --since 5m --follow=false
+            exit 1
+          fi
+
+          echo "Migraciones ejecutadas correctamente."
