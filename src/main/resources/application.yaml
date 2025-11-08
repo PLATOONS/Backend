@@ -20,3 +20,10 @@ spring:
     enabled: true
     validate-on-migrate: true
     target: ${FLYWAY_TARGET:latest}
+management:
+  datadog:
+    metrics:
+      export:
+        api-key: ${DATADOG_API_KEY}
+        application-key: ${DATADOG_APPLICATION_KEY}
+        uri: https://us5.datadog.com
