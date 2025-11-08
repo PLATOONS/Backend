@@ -9,9 +9,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 public class ECommerceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ECommerceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(ECommerceApplication.class, args);
+    }
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -19,12 +19,11 @@ public class ECommerceApplication {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:3000")
-                    .allowedMethods("GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS")
-                    .allowedHeaders("*")
-                    .allowCredentials(true);
+                        .allowedOrigins("http://localhost:3000")
+                        .allowedMethods("GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }
 }
-
