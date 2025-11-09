@@ -114,9 +114,8 @@ jobs:
 
       - name: Run DB migrations task (Java Spring Boot)
         run: |
-          # Cambia subnet y security group por los correctos
-          SUBNETS="subnet-xxxxxx"
-          SG="sg-xxxxxx"
+          SUBNETS="subnet-0ad564dfaed785fef,subnet-0add33b24bd8b3db1"
+          SG="sg-0ff26f728bac0fe6e"
 
           TASK_ARN=$(aws ecs run-task \
             --cluster "${CLUSTER_NAME}" \
