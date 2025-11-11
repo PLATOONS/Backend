@@ -1,4 +1,3 @@
---overrides '{"containerOverrides":[{"name":"BackendContainer","command":["java","-cp","app.jar","org.flywaydb.commandline.Main","migrate","-url=jdbc:mysql://<tu-db>","-user=<user>","-password=<pass>"]}]}'
 name: Backend | ECS Rolling Deploy (Java Spring Boot)
 
 on:
