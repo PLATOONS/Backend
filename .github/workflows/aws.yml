@@ -111,7 +111,7 @@ jobs:
           aws ecs wait services-stable \
             --cluster "${CLUSTER_NAME}" \
             --services "${SERVICE_NAME}"
-
+            
       - name: Run DB migrations task (Java Spring Boot)
         run: |
           TASK_ARN=$(aws ecs run-task \
@@ -120,8 +120,23 @@ jobs:
             --task-definition "$NEW_TD_ARN" \
             --count 1 \
             --network-configuration "awsvpcConfiguration={subnets=[\"subnet-00a87a4b8e55b950b\",\"subnet-03d442b9006bd1eed\"],securityGroups=[\"sg-0b7e6c77fc48adb37\"],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"BackendContainer","command":["java","-cp","app.jar","org.flywaydb.commandline.Main","migrate","-url=jdbc:mysql://infraecommercestack-ecommercedb1e0d6053-jjgmikwwnfhg.ct2kkaqm8zam.us-east-2.rds.amazonaws.com","-user=appuser","-password=uaqDt7GwviXy1Cfryc1btwY57n4JzOQT"]}]}'
-
+            --overrides '{
+              "containerOverrides": [
+                {
+                  "name": "BackendContainer",
+                  "command": [
+                    "java",
+                    "-cp",
+                    "app.jar",
+                    "org.flywaydb.commandline.Main",
+                    "migrate",
+                    "-url=jdbc:mysql://infraecommercestack-ecommercedb1e0d6053-jjgmikwwnfhg.ct2kkaqm8zam.us-east-2.rds.amazonaws.com:3306/ecommerce",
+                    "-user=appuser",
+                    "-password=uaqDt7GwviXy1Cfryc1btwY57n4JzOQT"
+                  ]
+                }
+              ]
+            }')
 
           echo "TASK_ARN=$TASK_ARN"
           echo "Waiting for migration task to complete..."
