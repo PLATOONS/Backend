@@ -27,8 +27,8 @@ management:
   datadog:
     metrics:
       export:
-        api-key: ${DATADOG_API_KEY}
-        application-key: ${DATADOG_APPLICATION_KEY}
+        api-key: ${DD_API_KEY}
+        application-key: ${DD_APP_KEY}
         uri: https://us5.datadog.com
   endpoints:
     web:

@@ -20,8 +20,8 @@ services:
       - DATABASE_NAME=${DATABASE_NAME:-e-commerce}
       - DATABASE_HOST=db
       - FLYWAY_TARGET=${FLYWAY_TARGET:-latest}
-      - DATADOG_API_KEY=${DATADOG_API_KEY:-key}
-      - DATADOG_APPLICATION_KEY={DATADOG_APPLICATION_KEY:-key}
+      - DD_API_KEY=${DD_API_KEY:-key}
+      - DD_APP_KEY={DD_APP_KEY:-key}
       - DD_AGENT_HOST=host.docker.internal
     ports:
       - ${BACKEND_PORT:-8080}:8080
