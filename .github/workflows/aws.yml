@@ -1,0 +1,113 @@
+name: Backend | ECS Rolling Deploy (Java Spring Boot)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY: ${{ secrets.BE_ECR_REPOSITORY }}   # ej: ecommerce-backend
+  CLUSTER_NAME: ${{ secrets.BE_CLUSTER_NAME }}       # ej: EcommerceCluster
+  SERVICE_NAME: ${{ secrets.BE_SERVICE_NAME }}       # ej: InfraEcommerceStack-BackendServiceXXXX
+  CONTAINER_NAME: BackendContainer
+  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.BE_ECR_REPOSITORY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image (Java Spring Boot)
+        run: |
+          docker build -t ${IMAGE_URI}:${IMAGE_TAG} -t ${IMAGE_URI}:latest .
+
+      - name: Push image to ECR
+        run: |
+          docker push ${IMAGE_URI}:${IMAGE_TAG}
+          docker push ${IMAGE_URI}:latest
+
+      - name: Get current Task Definition ARN
+        id: get_td
+        run: |
+          TD_ARN=$(aws ecs describe-services \
+            --cluster "${CLUSTER_NAME}" \
+            --services "${SERVICE_NAME}" \
+            --query 'services[0].taskDefinition' --output text)
+          echo "TD_ARN=$TD_ARN" >> $GITHUB_ENV
+
+      - name: Download current Task Definition JSON
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "$TD_ARN" \
+            --query 'taskDefinition' > current-td.json
+
+      - name: Prepare and register new Task Definition
+        id: reg_td
+        run: |
+          jq --arg IMG "${IMAGE_URI}:${IMAGE_TAG}" --arg NAME "${CONTAINER_NAME}" '
+            .containerDefinitions = (.containerDefinitions | map(
+              if .name == $NAME then .image = $IMG | . else . end
+            ))
+            | del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy,
+              .deregisteredAt
+            )
+          ' current-td.json > new-td.json
+
+          cat new-td.json
+
+          NEW_TD_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-td.json \
+            --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TD_ARN=$NEW_TD_ARN" >> $GITHUB_ENV
+
+      - name: Ensure desired count >= 1 (first deploy safety)
+        run: |
+          DESIRED=$(aws ecs describe-services \
+            --cluster "${CLUSTER_NAME}" --services "${SERVICE_NAME}" \
+            --query 'services[0].desiredCount' --output text)
+          if [ "$DESIRED" = "0" ] || [ "$DESIRED" = "None" ]; then
+            aws ecs update-service \
+              --cluster "${CLUSTER_NAME}" \
+              --service "${SERVICE_NAME}" \
+              --desired-count 1 >/dev/null
+          fi
+
+      - name: Update ECS service (rolling deploy)
+        run: |
+          aws ecs update-service \
+            --cluster "${CLUSTER_NAME}" \
+            --service "${SERVICE_NAME}" \
+            --task-definition "$NEW_TD_ARN" \
+            --force-new-deployment
+
+      - name: Wait for service stable
+        run: |
+          aws ecs wait services-stable \
+            --cluster "${CLUSTER_NAME}" \
+            --services "${SERVICE_NAME}"
