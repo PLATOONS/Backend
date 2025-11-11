@@ -137,4 +137,3 @@ jobs:
           fi
 
           echo "Database migrations completed successfully."
-
