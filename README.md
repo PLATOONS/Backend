@@ -2,6 +2,8 @@
 ## ER diagram
 <img width="1600" height="856" alt="image" src="https://github.com/user-attachments/assets/af29306e-68f9-465a-8051-61b47ecfaa37" />
 
+Testing
+
 ## How to run
 First, duplicate the .env.example and rename it to .env
 <br>
