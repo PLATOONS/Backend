@@ -114,17 +114,13 @@ jobs:
 
       - name: Run DB migrations task (Java Spring Boot)
         run: |
-          SUBNETS="subnet-00a87a4b8e55b950b,subnet-03d442b9006bd1eed"
-          SG="sg-0b7e6c77fc48adb37"
-              
-
           TASK_ARN=$(aws ecs run-task \
             --cluster "${CLUSTER_NAME}" \
             --launch-type FARGATE \
             --task-definition "$NEW_TD_ARN" \
             --count 1 \
-            --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"BackendContainer","command":["java","-jar","/app/app.jar","--spring.profiles.active=prod","db:migrate"]}]}' \
+            --network-configuration "awsvpcConfiguration={subnets=[\"subnet-00a87a4b8e55b950b\",\"subnet-03d442b9006bd1eed\"],securityGroups=[\"sg-0b7e6c77fc48adb37\"],assignPublicIp=ENABLED}" \
+            --overrides '{"containerOverrides":[{"name":"BackendContainer","command":["java","-jar","/app/app.jar","--spring.profiles.active=prod","--spring.main.web-application-type=none","db:migrate"]}]}' \
             --query 'tasks[0].taskArn' --output text)
 
           echo "TASK_ARN=$TASK_ARN"
@@ -140,3 +136,4 @@ jobs:
           fi
 
           echo "Database migrations completed successfully."
+
