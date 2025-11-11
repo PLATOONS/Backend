@@ -120,34 +120,20 @@ jobs:
             --task-definition "$NEW_TD_ARN" \
             --count 1 \
             --network-configuration "awsvpcConfiguration={subnets=[\"subnet-00a87a4b8e55b950b\",\"subnet-03d442b9006bd1eed\"],securityGroups=[\"sg-0b7e6c77fc48adb37\"],assignPublicIp=ENABLED}" \
-            --overrides '{
-              "containerOverrides": [
-                {
-                  "name": "BackendContainer",
-                  "command": [
-                    "java",
-                    "-cp",
-                    "app.jar",
-                    "org.flywaydb.commandline.Main",
-                    "migrate",
-                    "-url=jdbc:mysql://infraecommercestack-ecommercedb1e0d6053-jjgmikwwnfhg.ct2kkaqm8zam.us-east-2.rds.amazonaws.com:3306/ecommerce",
-                    "-user=appuser",
-                    "-password=uaqDt7GwviXy1Cfryc1btwY57n4JzOQT"
-                  ]
-                }
-              ]
-            }')
-
+            --overrides '{"containerOverrides":[{"name":"BackendContainer","command":["java","-cp","app.jar","org.flywaydb.commandline.Main","migrate","-url=jdbc:mysql://infraecommercestack-ecommercedb1e0d6053-jjgmikwwnfhg.ct2kkaqm8zam.us-east-2.rds.amazonaws.com","-user=appuser","-password=uaqDt7GwviXy1Cfryc1btwY57n4JzOQT"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+      
           echo "TASK_ARN=$TASK_ARN"
+      
           echo "Waiting for migration task to complete..."
           aws ecs wait tasks-stopped --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN"
-
+      
           EXIT_CODE=$(aws ecs describe-tasks --cluster "${CLUSTER_NAME}" --tasks "$TASK_ARN" \
             --query "tasks[0].containers[?name=='${CONTAINER_NAME}'].exitCode" --output text)
-
+      
           if [ "$EXIT_CODE" != "0" ]; then
             echo "Migration task failed!"
             exit 1
           fi
-
+      
           echo "Database migrations completed successfully."
