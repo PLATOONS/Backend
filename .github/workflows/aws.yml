@@ -115,7 +115,7 @@ jobs:
       - name: Run DB migrations task (Java Spring Boot)
         run: |
           SUBNETS="subnet-0ad564dfaed785fef,subnet-0add33b24bd8b3db1"
-          SG="sg-0ecea1c470fb6117d"
+          SG="sg-0ecea1c470fb6117a"
               
 
           TASK_ARN=$(aws ecs run-task \
