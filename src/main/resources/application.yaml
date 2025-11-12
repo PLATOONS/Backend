@@ -30,6 +30,7 @@ management:
         api-key: ${DD_API_KEY}
         application-key: ${DD_APP_KEY}
         uri: https://us5.datadog.com
+        enabled: false
   endpoints:
     web:
       exposure:
@@ -37,3 +38,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION}
+  s3:
+    bucket-name: ${S3_IMAGE_BUCKET_NAME}

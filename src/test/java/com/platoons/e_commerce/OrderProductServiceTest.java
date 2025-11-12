@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.platoons.e_commerce.service.IS3Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +51,9 @@ class OrderProductServiceTest {
     private OrderStatusRepository orderStatusRepository;
     @MockitoBean
     private CustomerRepository customerRepository;
-
+    @MockitoBean
+    private IS3Service s3Service;
+    @MockitoBean
     private OrderProductServiceImpl service;
 
     @BeforeEach
@@ -59,10 +63,11 @@ class OrderProductServiceTest {
         orderProductRepository = mock(OrderProductRepository.class);
         orderStatusRepository = mock(OrderStatusRepository.class);
         customerRepository = mock(CustomerRepository.class);
+        s3Service = mock(IS3Service.class);
 
         service = new OrderProductServiceImpl(
                 productRepository, orderRepository, orderProductRepository,
-                orderStatusRepository, customerRepository
+                orderStatusRepository, customerRepository, s3Service
         );
     }
 

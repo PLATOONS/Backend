@@ -4,7 +4,7 @@ import com.platoons.e_commerce.controller.ProductController;
 import com.platoons.e_commerce.dto.CreateProductRequestDto;
 import com.platoons.e_commerce.dto.FetchProductResponseDto;
 import com.platoons.e_commerce.dto.GenericResponseDto;
-import com.platoons.e_commerce.repository.ProductRepository;
+import com.platoons.e_commerce.dto.ProductSummaryDto;
 import com.platoons.e_commerce.service.IProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,12 +41,12 @@ public class ProductControllerTest {
     @Test
     void fetchProducts_returnsPagedProducts() {
         var pageable = PageRequest.of(0, 10);
-        ProductRepository.ProductSummaryProjection projection = mock(ProductRepository.ProductSummaryProjection.class);
-        Page<ProductRepository.ProductSummaryProjection> page = new PageImpl<>(Collections.singletonList(projection));
+        ProductSummaryDto dto = new ProductSummaryDto();
+        Page<ProductSummaryDto> page = new PageImpl<>(Collections.singletonList(dto));
 
         when(productService.fetchProducts(pageable, null, null, null)).thenReturn(page);
 
-        ResponseEntity<Page<ProductRepository.ProductSummaryProjection>> response = productController
+        ResponseEntity<Page<ProductSummaryDto>> response = productController
                 .fetchProducts(pageable, null, null, null);
 
         assertEquals(200, response.getStatusCodeValue());

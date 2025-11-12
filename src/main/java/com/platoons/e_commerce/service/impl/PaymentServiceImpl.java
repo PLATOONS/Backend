@@ -140,14 +140,13 @@ public class PaymentServiceImpl implements IPaymentService {
 
         if (optionalCompletedStatus.isEmpty()){
             OrderStatus status = new OrderStatus();
-            status.setStatusName("CART");
-            status.setDescription("User's cart");
+            status.setStatusName("COMPLETED");
+            status.setDescription("Order completed");
             completedStatus = orderStatusRepository.save(status);
         }else{
             completedStatus = optionalCompletedStatus.get();
         }
 
-        System.out.println("a");
         order.setOrderStatus(completedStatus);
         orderRepository.save(order);
 

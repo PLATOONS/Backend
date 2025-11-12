@@ -6,10 +6,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.platoons.e_commerce.dto.CreateProductRequestDto;
 import com.platoons.e_commerce.dto.FetchProductResponseDto;
-import com.platoons.e_commerce.repository.ProductRepository;
+import com.platoons.e_commerce.dto.ProductSummaryDto;
 
 public interface IProductService {
-    Page<ProductRepository.ProductSummaryProjection> fetchProducts(Pageable pageable, String category, String min, String max);
+    Page<ProductSummaryDto> fetchProducts(Pageable pageable, String category, String min, String max);
     FetchProductResponseDto fetchProduct(String productId);
 
     String createProduct(MultipartFile[] images, CreateProductRequestDto productDto);

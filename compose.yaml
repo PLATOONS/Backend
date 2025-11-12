@@ -14,15 +14,21 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD?Variable not set}
       - SECRET=${JWT_SECRET?Variable not set}
-      - DATABASE_USER=${DATABASE_USER:-user}
-      - DATABASE_NAME=${DATABASE_NAME:-e-commerce}
-      - DATABASE_HOST=db
+      # Was the change of name for these really necessary?
+      - DB_PASSWORD=${DATABASE_PASSWORD?Variable not set}
+      - DB_USERNAME=${DATABASE_USER:-user}
+      - DB_NAME=${DATABASE_NAME:-e-commerce}
+      - DB_HOST=db
+      - DB_PORT=3306
       - FLYWAY_TARGET=${FLYWAY_TARGET:-latest}
       - DD_API_KEY=${DD_API_KEY:-key}
       - DD_APP_KEY={DD_APP_KEY:-key}
       - DD_AGENT_HOST=host.docker.internal
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY:-key}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY:-key}
+      - AWS_REGION=${AWS_REGION:-key}
+      - S3_IMAGE_BUCKET_NAME=${S3_IMAGE_BUCKET_NAME:-key}
     ports:
       - ${BACKEND_PORT:-8080}:8080
     develop:
@@ -45,6 +51,7 @@ services:
       - MYSQL_ALLOW_EMPTY_PASSWORD=no
       - MYSQL_USER=${DATABASE_USER:-user}
       - MYSQL_DATABASE=${DATABASE_NAME:-e-commerce}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD?Variable not set}
     ports:
       - ${DATABASE_PORT:-3306}:3306
     volumes:

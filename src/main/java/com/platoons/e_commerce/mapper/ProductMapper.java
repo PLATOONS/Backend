@@ -3,6 +3,7 @@ package com.platoons.e_commerce.mapper;
 import com.platoons.e_commerce.dto.CreateProductRequestDto;
 import com.platoons.e_commerce.dto.FetchProductResponseDto;
 import com.platoons.e_commerce.entity.Product;
+import com.platoons.e_commerce.service.IS3Service;
 
 public class ProductMapper {
     public static Product mapCreateProductRequestDtoToProduct(
@@ -18,7 +19,7 @@ public class ProductMapper {
     }
 
     public static FetchProductResponseDto mapProductToFetchProductResponseDto(
-            Product product, FetchProductResponseDto fetchProductResponseDto) {
+            Product product, FetchProductResponseDto fetchProductResponseDto, IS3Service s3Service) {
         fetchProductResponseDto.setProductId(product.getProductId());
         fetchProductResponseDto.setCategory(product.getCategory().getName());
         fetchProductResponseDto.setPrice(product.getPrice());
@@ -27,7 +28,7 @@ public class ProductMapper {
         // Turn product images into product image dto
         fetchProductResponseDto.setProductImages(
                 product.getProductImages().stream()
-                        .map(ProductImageMapper::mapProductImageToProductImageDto)
+                        .map(img -> ProductImageMapper.mapProductImageToProductImageDto(img, s3Service))
                         .toList());
 
         fetchProductResponseDto.setName(product.getName());
