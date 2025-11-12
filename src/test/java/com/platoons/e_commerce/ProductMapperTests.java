@@ -15,6 +15,8 @@ import com.platoons.e_commerce.entity.Category;
 import com.platoons.e_commerce.entity.ExtraInfo;
 import com.platoons.e_commerce.mapper.ProductMapper;
 import org.springframework.test.context.ActiveProfiles;
+import com.platoons.e_commerce.service.IS3Service;
+import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 public class ProductMapperTests {
@@ -76,8 +78,9 @@ public class ProductMapperTests {
         product.setProductImages(images);
 
         FetchProductResponseDto dto = new FetchProductResponseDto();
+        IS3Service s3Service = mock(IS3Service.class);
 
-        FetchProductResponseDto result = ProductMapper.mapProductToFetchProductResponseDto(product, dto);
+        FetchProductResponseDto result = ProductMapper.mapProductToFetchProductResponseDto(product, dto, s3Service);
 
         assertEquals("123", result.getProductId());
         assertEquals("Electronics", result.getCategory());

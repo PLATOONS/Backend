@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import com.platoons.e_commerce.dto.CreateProductRequestDto;
 import com.platoons.e_commerce.dto.FetchProductResponseDto;
+import com.platoons.e_commerce.dto.ProductSummaryDto;
 import com.platoons.e_commerce.entity.Category;
 import com.platoons.e_commerce.entity.Product;
 import com.platoons.e_commerce.entity.ProductImage;
@@ -24,8 +25,10 @@ import com.platoons.e_commerce.repository.ExtraInfoRepository;
 import com.platoons.e_commerce.repository.ProductImageRepository;
 import com.platoons.e_commerce.repository.ProductRepository;
 import com.platoons.e_commerce.service.impl.ProductServiceImpl;
+import com.platoons.e_commerce.service.IS3Service;
 import com.platoons.e_commerce.utils.ImageUtils;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -42,6 +45,7 @@ public class ProductServiceImplTests {
     private CategoryRepository categoryRepository;
     private ExtraInfoRepository extraInfoRepository;
     private ProductServiceImpl productService;
+    private IS3Service s3Service;
 
     @BeforeEach
     void setUp() {
@@ -50,40 +54,42 @@ public class ProductServiceImplTests {
         productImageRepository = mock(ProductImageRepository.class);
         categoryRepository = mock(CategoryRepository.class);
         extraInfoRepository = mock(ExtraInfoRepository.class);
+        s3Service = mock(IS3Service.class);
 
         productService = new ProductServiceImpl(
                 imageUtils,
                 productRepository,
                 productImageRepository,
                 categoryRepository,
-                extraInfoRepository);
+                extraInfoRepository,
+                s3Service);
     }
 
     @Test
     void testFetchProducts_WithAllParameters() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, "Electronics", 100.0, 500.0))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, "Electronics", "100", "500");
 
         assertNotNull(result);
-        assertEquals(mockPage, result);
+        assertEquals(0, result.getContent().size());
         verify(productRepository, times(1)).findAllSummaries(pageable, "Electronics", 100.0, 500.0);
     }
 
     @Test
     void testFetchProducts_WithNullMinPrice_ShouldUseDefaultZero() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, "Books", 0.0, 200.0))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, "Books", null, "200");
 
         assertNotNull(result);
@@ -93,12 +99,12 @@ public class ProductServiceImplTests {
     @Test
     void testFetchProducts_WithNullMaxPrice_ShouldUseDefault999999() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, "Clothing", 50.0, 999999.0))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, "Clothing", "50", null);
 
         assertNotNull(result);
@@ -108,12 +114,12 @@ public class ProductServiceImplTests {
     @Test
     void testFetchProducts_WithBothPricesNull_ShouldUseDefaults() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, null, 0.0, 999999.0))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, null, null, null);
 
         assertNotNull(result);
@@ -154,12 +160,12 @@ public class ProductServiceImplTests {
     @Test
     void testFetchProducts_WithNullCategory() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, null, 0.0, 1000.0))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, null, "0", "1000");
 
         assertNotNull(result);
@@ -169,12 +175,12 @@ public class ProductServiceImplTests {
     @Test
     void testFetchProducts_WithEqualMinAndMaxPrices() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, "Sports", 100.0, 100.0))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, "Sports", "100", "100");
 
         assertNotNull(result);
@@ -184,12 +190,12 @@ public class ProductServiceImplTests {
     @Test
     void testFetchProducts_WithDecimalPrices() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductRepository.ProductSummaryProjection> mockPage = new PageImpl<>(List.of());
+        Page<ProductSummaryDto> mockPage = new PageImpl<>(List.of());
 
         when(productRepository.findAllSummaries(pageable, "Home", 19.99, 299.99))
                 .thenReturn(mockPage);
 
-        Page<ProductRepository.ProductSummaryProjection> result = productService.fetchProducts(
+        Page<ProductSummaryDto> result = productService.fetchProducts(
                 pageable, "Home", "19.99", "299.99");
 
         assertNotNull(result);
@@ -208,7 +214,7 @@ public class ProductServiceImplTests {
         try (MockedStatic<ProductMapper> mockedMapper = mockStatic(ProductMapper.class)) {
             mockedMapper
                     .when(() -> ProductMapper.mapProductToFetchProductResponseDto(eq(product),
-                            any(FetchProductResponseDto.class)))
+                            any(FetchProductResponseDto.class), eq(s3Service)))
                     .thenReturn(dto);
 
             FetchProductResponseDto result = productService.fetchProduct("p1");
@@ -233,6 +239,11 @@ public class ProductServiceImplTests {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getOriginalFilename()).thenReturn("img.png");
         when(imageUtils.fileIsImage(file)).thenReturn(true);
+        try {
+            when(s3Service.uploadFile(file)).thenReturn("uploaded.png");
+        } catch (java.lang.Exception e) {
+            throw new RuntimeException(e);
+        }
 
         CreateProductRequestDto dto = new CreateProductRequestDto();
         dto.setColors(List.of("red"));
@@ -276,6 +287,11 @@ public class ProductServiceImplTests {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getOriginalFilename()).thenReturn("img.png");
         when(imageUtils.fileIsImage(file)).thenReturn(true);
+        try {
+            when(s3Service.uploadFile(file)).thenReturn("uploaded.png");
+        } catch (java.lang.Exception e) {
+            throw new RuntimeException(e);
+        }
 
         CreateProductRequestDto dto = new CreateProductRequestDto();
         dto.setColors(List.of("black"));

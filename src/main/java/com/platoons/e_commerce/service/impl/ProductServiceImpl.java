@@ -1,9 +1,11 @@
 package com.platoons.e_commerce.service.impl;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.platoons.e_commerce.service.IS3Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.platoons.e_commerce.dto.CreateProductRequestDto;
 import com.platoons.e_commerce.dto.FetchProductResponseDto;
+import com.platoons.e_commerce.dto.ProductSummaryDto;
 import com.platoons.e_commerce.entity.Category;
 import com.platoons.e_commerce.entity.ExtraInfo;
 import com.platoons.e_commerce.entity.Product;
@@ -38,9 +41,10 @@ public class ProductServiceImpl implements IProductService {
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final ExtraInfoRepository extraInfoRepository;
+    private final IS3Service s3Service;
 
     @Override
-    public Page<ProductRepository.ProductSummaryProjection> fetchProducts(Pageable pageable, String category, String min, String max) {
+    public Page<ProductSummaryDto> fetchProducts(Pageable pageable, String category, String min, String max) {
         if (min == null){
             min = "0";
         }
@@ -56,7 +60,12 @@ public class ProductServiceImpl implements IProductService {
             throw new BadRequestException("Min price is greater than max price");
         }
 
-        return productRepository.findAllSummaries(pageable, category, minPrice, maxPrice);
+        return productRepository.findAllSummaries(pageable, category, minPrice, maxPrice)
+                .map(summary -> {
+                    String imageUrl = s3Service.getFileUrl(summary.getImageUrl());
+                    summary.setImageUrl(imageUrl);
+                    return summary;
+                });
     }
 
     @Override
@@ -67,7 +76,7 @@ public class ProductServiceImpl implements IProductService {
                         "product", "productId", productId));
 
         return ProductMapper.mapProductToFetchProductResponseDto(
-                savedProduct, new FetchProductResponseDto());
+                savedProduct, new FetchProductResponseDto(), s3Service);
     }
 
     private String saveProduct(MultipartFile[] images, CreateProductRequestDto productDto, Product product){
@@ -95,8 +104,15 @@ public class ProductServiceImpl implements IProductService {
         // Checks if each of the files sent are images
         List<String> imagesName = new ArrayList<>();
         for (MultipartFile image : images) {
-            if (imageUtils.fileIsImage(image))
-                imagesName.add(image.getOriginalFilename());
+            if (imageUtils.fileIsImage(image)) {
+                String fileName = null;
+                try {
+                    fileName = s3Service.uploadFile(image);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                imagesName.add(fileName);
+            }
             else
                 throw new BadRequestException("At least one of the files is not an image");
         }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.platoons.e_commerce.dto.CartProductsDto;
+import com.platoons.e_commerce.service.IS3Service;
 import org.springframework.stereotype.Service;
 
 import com.platoons.e_commerce.dto.AddToCartRequestDto;
@@ -33,6 +34,7 @@ public class OrderProductServiceImpl implements IOrderProductService {
     private final OrderProductRepository orderProductRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final CustomerRepository customerRepository;
+    private final IS3Service s3Service;
 
     @Override
     @Transactional
@@ -201,7 +203,9 @@ public class OrderProductServiceImpl implements IOrderProductService {
         customerRepository.findByUsernameAndDeletedAtIsNull(username)
             .orElseThrow(() -> new EntityNotFoundException("Customer", "username", username));
 
-        return productRepository.fetchCartProducts(username);
+        List<CartProductsDto> products = productRepository.fetchCartProducts(username);
+        products.forEach(product -> product.setImageUrl(s3Service.getFileUrl(product.getImageUrl())));
+        return products;
     }
 
     private double resolveUnitPrice(Product p) {

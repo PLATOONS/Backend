@@ -4,7 +4,7 @@ import com.platoons.e_commerce.dto.CreateProductRequestDto;
 import com.platoons.e_commerce.dto.ErrorResponseDto;
 import com.platoons.e_commerce.dto.FetchProductResponseDto;
 import com.platoons.e_commerce.dto.GenericResponseDto;
-import com.platoons.e_commerce.repository.ProductRepository;
+import com.platoons.e_commerce.dto.ProductSummaryDto;
 import com.platoons.e_commerce.service.IProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,11 +45,11 @@ public class ProductController {
     @Operation(summary = "Get all products", description = "Retrieves a paginated list of all products")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved products",
-                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProductRepository.ProductSummaryProjection.class))))
+                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProductSummaryDto.class))))
     })
     @PageableAsQueryParam
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<ProductRepository.ProductSummaryProjection>> fetchProducts(
+    public ResponseEntity<Page<ProductSummaryDto>> fetchProducts(
             @Parameter(hidden = true) Pageable pageable,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String min,
