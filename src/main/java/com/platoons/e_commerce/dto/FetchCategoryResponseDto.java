@@ -19,4 +19,6 @@ public class FetchCategoryResponseDto {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private String test;
 }

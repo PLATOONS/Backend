@@ -17,6 +17,7 @@ public class CategoryMapper {
         categoryDto.setDescription(category.getDescription());
         categoryDto.setCreatedAt(category.getCreatedAt());
         categoryDto.setUpdatedAt(category.getUpdatedAt());
+        categoryDto.setTest(category.getTest());
         return categoryDto;
     }
 }
