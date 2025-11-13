@@ -25,6 +25,7 @@ public class ImageUtilsTests {
     // Valid image tests
     @Test
     void fileIsImage_ValidJpeg_ReturnsTrue() throws Exception {
+        assertTrue(false);
         // JPEG file signature (first 8 bytes)
         byte[] jpegSignature = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x00, 0x10, 0x4A, 0x46};
         when(mockFile.getBytes()).thenReturn(jpegSignature);
