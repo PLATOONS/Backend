@@ -28,4 +28,6 @@ public class CreateCategoryRequestDto {
     @NotNull(message = "Description is required")
     @NotBlank(message = "Description is required")
     private String description;
+
+    private String test;
 }

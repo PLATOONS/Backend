@@ -8,6 +8,7 @@ public class CategoryMapper {
     public static Category mapCreateCategoryRequestDtoToCategory(CreateCategoryRequestDto categoryDto, Category category) {
         category.setName(categoryDto.getName());
         category.setDescription(categoryDto.getDescription());
+        category.setTest(categoryDto.getTest());
         return category;
     }
 
@@ -17,6 +18,7 @@ public class CategoryMapper {
         categoryDto.setDescription(category.getDescription());
         categoryDto.setCreatedAt(category.getCreatedAt());
         categoryDto.setUpdatedAt(category.getUpdatedAt());
+        categoryDto.setTest(category.getTest());
         return categoryDto;
     }
 }

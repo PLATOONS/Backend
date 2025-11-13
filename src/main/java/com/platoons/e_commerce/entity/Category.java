@@ -26,4 +26,6 @@ public class Category extends BaseEntity{
     @NotNull
     @NotBlank
     private String description;
+
+    private String test;
 }
