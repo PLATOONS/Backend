@@ -8,6 +8,7 @@ public class CategoryMapper {
     public static Category mapCreateCategoryRequestDtoToCategory(CreateCategoryRequestDto categoryDto, Category category) {
         category.setName(categoryDto.getName());
         category.setDescription(categoryDto.getDescription());
+        category.setTest(categoryDto.getTest());
         return category;
     }
 

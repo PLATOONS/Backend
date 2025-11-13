@@ -6,14 +6,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-//@SpringBootTest
-//@ActiveProfiles("test")
-//class ECommerceApplicationTests {
-//    @MockitoBean
-//    private IS3Service s3Service;
-//
-//    @Test
-//    void contextLoads() {
-//    }
-//
-//}
+@SpringBootTest
+@ActiveProfiles("test")
+class ECommerceApplicationTests {
+    @MockitoBean
+    private IS3Service s3Service;
+
+    @Test
+    void contextLoads() {
+    }
+
+}
